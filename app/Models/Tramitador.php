@@ -45,7 +45,11 @@ class Tramitador extends Model
     public function renovaciones(): BelongsToMany
     {
         return $this->belongsToMany(Renovacion::class, 'tramitador_renovacion')
-            ->withPivot('precio_tramitador')
+            ->withPivot([
+                'precio_renovacion',  // Cambiado de 'precio_tramitador'
+                'precio_examen',
+                'precio_lamina'
+            ])
             ->withTimestamps();
     }
 
@@ -62,5 +66,37 @@ class Tramitador extends Model
         return $this->belongsToMany(Categoria::class, 'tramitador_categoria')
             ->withPivot('precio')
             ->withTimestamps();
+    }
+
+    public function cursos(): BelongsToMany
+    {
+        return $this->belongsToMany(Curso::class, 'tramitador_curso')
+            ->withPivot([
+                'precio_50_transito',
+                'precio_50_recibir',
+                'precio_20_transito',
+                'precio_20_recibir'
+            ])
+            ->withTimestamps();
+    }
+
+    public function cursoPrecios()
+    {
+        return $this->hasMany(TramitadorCurso::class);
+    }
+
+    public function renovacionPrecios()
+    {
+        return $this->hasMany(TramitadorRenovacion::class);
+    }
+
+    public function controversiaPrecios()
+    {
+        return $this->hasMany(TramitadorControversia::class);
+    }
+
+    public function categoriaPrecios()
+    {
+        return $this->hasMany(TramitadorCategoria::class);
     }
 }

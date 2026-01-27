@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TramitadorResource\Pages;
 use App\Models\Tramitador;
 use App\Models\Categoria;
+use App\Models\Renovacion;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,11 +17,8 @@ class TramitadorResource extends Resource
     protected static ?string $model = Tramitador::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
-
     protected static ?string $navigationLabel = 'Tramitadores';
-
     protected static ?string $navigationGroup = 'Configuración';
-
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -56,53 +54,148 @@ class TramitadorResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Precios de Cursos')
+                // Forms\Components\Section::make('Precios de Cursos')
+                //     ->schema([
+                //         Forms\Components\TextInput::make('curso_50_transito')
+                //             ->label('Curso 50% - Valor Tránsito')
+                //             ->numeric()
+                //             ->prefix('$')
+                //             ->default(0)
+                //             ->required(),
+
+                //         Forms\Components\TextInput::make('curso_50_recibir')
+                //             ->label('Curso 50% - Valor a Recibir')
+                //             ->numeric()
+                //             ->prefix('$')
+                //             ->default(0)
+                //             ->required(),
+
+                //         Forms\Components\TextInput::make('curso_20_transito')
+                //             ->label('Curso 20% - Valor Tránsito')
+                //             ->numeric()
+                //             ->prefix('$')
+                //             ->default(0)
+                //             ->required(),
+
+                //         Forms\Components\TextInput::make('curso_20_recibir')
+                //             ->label('Curso 20% - Valor a Recibir')
+                //             ->numeric()
+                //             ->prefix('$')
+                //             ->default(0)
+                //             ->required(),
+                //     ])
+                //     ->columns(2),
+
+
+                // Sección para precios de cursos por relación
+                Forms\Components\Section::make('Precios Específicos por Curso')
                     ->schema([
-                        Forms\Components\TextInput::make('curso_50_transito')
-                            ->label('Curso 50% - Valor Tránsito')
-                            ->numeric()
-                            ->prefix('$')
-                            ->default(0)
-                            ->required(),
-
-                        Forms\Components\TextInput::make('curso_50_recibir')
-                            ->label('Curso 50% - Valor a Recibir')
-                            ->numeric()
-                            ->prefix('$')
-                            ->default(0)
-                            ->required(),
-
-                        Forms\Components\TextInput::make('curso_20_transito')
-                            ->label('Curso 20% - Valor Tránsito')
-                            ->numeric()
-                            ->prefix('$')
-                            ->default(0)
-                            ->required(),
-
-                        Forms\Components\TextInput::make('curso_20_recibir')
-                            ->label('Curso 20% - Valor a Recibir')
-                            ->numeric()
-                            ->prefix('$')
-                            ->default(0)
-                            ->required(),
-                    ])
-                    ->columns(2),
-
-                // Nueva sección para categorías con precios
-                Forms\Components\Section::make('Categorías y Precios')
-                    ->schema([
-                        Forms\Components\Repeater::make('categorias')
-                            ->relationship('categorias')
+                        Forms\Components\Repeater::make('cursos')
                             ->schema([
-                                Forms\Components\Select::make('categoria_id')
-                                    ->label('Categoría')
-                                    ->options(Categoria::where('activa', true)->pluck('nombre', 'id'))
+                                Forms\Components\Select::make('curso_id')
+                                    ->label('Curso')
+                                    ->options(\App\Models\Curso::where('activo', true)->pluck('categoria', 'id'))
                                     ->searchable()
                                     ->required()
                                     ->distinct()
                                     ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
 
-                                Forms\Components\TextInput::make('precio')
+                                Forms\Components\TextInput::make('precio_50_transito')
+                                    ->label('50% Tránsito')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->default(0)
+                                    ->required(),
+
+                                Forms\Components\TextInput::make('precio_50_recibir')
+                                    ->label('50% Recibir')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->default(0)
+                                    ->required(),
+
+                                Forms\Components\TextInput::make('precio_20_transito')
+                                    ->label('20% Tránsito')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->default(0)
+                                    ->required(),
+
+                                Forms\Components\TextInput::make('precio_20_recibir')
+                                    ->label('20% Recibir')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->default(0)
+                                    ->required(),
+                            ])
+                            ->columns(4)
+                            ->itemLabel(fn (array $state): ?string =>
+                                $state['curso_id'] ?? null ?
+                                \App\Models\Curso::find($state['curso_id'])?->categoria : 'Nuevo curso'
+                            )
+                            ->defaultItems(0)
+                            ->addActionLabel('Agregar Curso'),
+                    ])
+                    ->collapsible(),
+
+                // Sección para precios de renovaciones
+                Forms\Components\Section::make('Precios de Renovaciones')
+                    ->schema([
+                        Forms\Components\Repeater::make('renovaciones')
+                            ->schema([
+                                Forms\Components\Select::make('renovacion_id')
+                                    ->label('Renovación')
+                                    ->options(Renovacion::where('activo', true)->pluck('nombre', 'id'))
+                                    ->searchable()
+                                    ->required()
+                                    ->distinct()
+                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+
+                                Forms\Components\TextInput::make('precio_renovacion')
+                                    ->label('Precio Renovación')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->default(0)
+                                    ->required(),
+
+                                Forms\Components\TextInput::make('precio_examen')
+                                    ->label('Precio Examen')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->default(0)
+                                    ->required(),
+
+                                Forms\Components\TextInput::make('precio_lamina')
+                                    ->label('Precio Lámina')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->default(0)
+                                    ->required(),
+                            ])
+                            ->columns(4)
+                            ->itemLabel(fn (array $state): ?string =>
+                                $state['renovacion_id'] ?? null ?
+                                Renovacion::find($state['renovacion_id'])?->nombre : 'Nueva renovación'
+                            )
+                            ->defaultItems(0)
+                            ->addActionLabel('Agregar Renovación'),
+                    ])
+                    ->collapsible(),
+
+                // Sección para precios de controversias
+                Forms\Components\Section::make('Precios de Controversias')
+                    ->schema([
+                        Forms\Components\Repeater::make('controversias')
+                            ->schema([
+                                Forms\Components\Select::make('categoria_controversia_id')
+                                    ->label('Categoría')
+                                    ->options(\App\Models\CategoriaControversia::where('activo', true)->pluck('nombre', 'id'))
+                                    ->searchable()
+                                    ->required()
+                                    ->distinct()
+                                    ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+
+                                Forms\Components\TextInput::make('precio_tramitador')
                                     ->label('Precio')
                                     ->numeric()
                                     ->prefix('$')
@@ -111,13 +204,44 @@ class TramitadorResource extends Resource
                             ])
                             ->columns(2)
                             ->itemLabel(fn (array $state): ?string =>
-                                $state['categoria_id'] ?? null ?
-                                Categoria::find($state['categoria_id'])?->nombre : 'Nueva categoría'
+                                $state['categoria_controversia_id'] ?? null ?
+                                \App\Models\CategoriaControversia::find($state['categoria_controversia_id'])?->nombre : 'Nueva categoría'
                             )
-                            ->reorderable()
                             ->defaultItems(0)
-                            ->addActionLabel('Agregar Categoría'),
-                    ]),
+                            ->addActionLabel('Agregar Controversia'),
+                    ])
+                    ->collapsible(),
+
+                // Sección para categorías con precios
+                // Forms\Components\Section::make('Categorías y Precios')
+                //     ->schema([
+                //         Forms\Components\Repeater::make('categorias')
+                //             ->schema([
+                //                 Forms\Components\Select::make('categoria_id')
+                //                     ->label('Categoría')
+                //                     ->options(Categoria::where('activa', true)->pluck('nombre', 'id'))
+                //                     ->searchable()
+                //                     ->required()
+                //                     ->distinct()
+                //                     ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+
+                //                 Forms\Components\TextInput::make('precio')
+                //                     ->label('Precio')
+                //                     ->numeric()
+                //                     ->prefix('$')
+                //                     ->default(0)
+                //                     ->required(),
+                //             ])
+                //             ->columns(2)
+                //             ->itemLabel(fn (array $state): ?string =>
+                //                 $state['categoria_id'] ?? null ?
+                //                 Categoria::find($state['categoria_id'])?->nombre : 'Nueva categoría'
+                //             )
+                //             ->reorderable()
+                //             ->defaultItems(0)
+                //             ->addActionLabel('Agregar Categoría'),
+                //     ])
+                //     ->collapsible(),
             ]);
     }
 

@@ -15,11 +15,8 @@ class RenovacionResource extends Resource
     protected static ?string $model = Renovacion::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-path';
-
     protected static ?string $navigationLabel = 'Renovaciones';
-
     protected static ?string $navigationGroup = 'Configuración';
-
     protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
@@ -33,16 +30,22 @@ class RenovacionResource extends Resource
                             ->maxLength(255)
                             ->columnSpan(2),
 
-                        Forms\Components\Select::make('tipo')
-                            ->options([
-                                'solo_examen' => 'Solo Examen',
-                                'examen_lamina' => 'Examen y Lámina',
-                            ])
-                            ->required()
-                            ->native(false),
+                        Forms\Components\TextInput::make('precio_renovacion')
+                            ->label('Precio Renovación')
+                            ->numeric()
+                            ->prefix('$')
+                            ->default(0)
+                            ->required(),
 
-                        Forms\Components\TextInput::make('precio_cliente')
-                            ->label('Precio para Cliente')
+                        Forms\Components\TextInput::make('precio_examen')
+                            ->label('Precio Examen')
+                            ->numeric()
+                            ->prefix('$')
+                            ->default(0)
+                            ->required(),
+
+                        Forms\Components\TextInput::make('precio_lamina')
+                            ->label('Precio Lámina')
                             ->numeric()
                             ->prefix('$')
                             ->default(0)
@@ -64,19 +67,18 @@ class RenovacionResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('tipo')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'solo_examen' => 'Solo Examen',
-                        'examen_lamina' => 'Examen y Lámina',
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'solo_examen' => 'info',
-                        'examen_lamina' => 'success',
-                    }),
+                Tables\Columns\TextColumn::make('precio_renovacion')
+                    ->label('Renovación')
+                    ->money('COP')
+                    ->sortable(),
 
-                Tables\Columns\TextColumn::make('precio_cliente')
-                    ->label('Precio Cliente')
+                Tables\Columns\TextColumn::make('precio_examen')
+                    ->label('Examen')
+                    ->money('COP')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('precio_lamina')
+                    ->label('Lámina')
                     ->money('COP')
                     ->sortable(),
 
@@ -90,12 +92,6 @@ class RenovacionResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('tipo')
-                    ->options([
-                        'solo_examen' => 'Solo Examen',
-                        'examen_lamina' => 'Examen y Lámina',
-                    ]),
-
                 Tables\Filters\TernaryFilter::make('activo')
                     ->label('Estado')
                     ->placeholder('Todos')
@@ -111,11 +107,6 @@ class RenovacionResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [];
     }
 
     public static function getPages(): array

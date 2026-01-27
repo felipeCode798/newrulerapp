@@ -12,33 +12,24 @@ class RenovacionSeeder extends Seeder
         $renovaciones = [
             [
                 'nombre' => 'Renovación Categoría A',
-                'tipo' => 'solo_examen',
-                'precio_cliente' => 80000,
-            ],
-            [
-                'nombre' => 'Renovación Categoría A con Lámina',
-                'tipo' => 'examen_lamina',
-                'precio_cliente' => 120000,
+                'precio_renovacion' => 80000,
+                'precio_examen' => 50000,
+                'precio_lamina' => 30000,
+                'activo' => true,
             ],
             [
                 'nombre' => 'Renovación Categoría B',
-                'tipo' => 'solo_examen',
-                'precio_cliente' => 100000,
-            ],
-            [
-                'nombre' => 'Renovación Categoría B con Lámina',
-                'tipo' => 'examen_lamina',
-                'precio_cliente' => 150000,
+                'precio_renovacion' => 90000,
+                'precio_examen' => 55000,
+                'precio_lamina' => 32000,
+                'activo' => true,
             ],
             [
                 'nombre' => 'Renovación Categoría C',
-                'tipo' => 'solo_examen',
-                'precio_cliente' => 120000,
-            ],
-            [
-                'nombre' => 'Renovación Categoría C con Lámina',
-                'tipo' => 'examen_lamina',
-                'precio_cliente' => 180000,
+                'precio_renovacion' => 100000,
+                'precio_examen' => 60000,
+                'precio_lamina' => 35000,
+                'activo' => true,
             ],
         ];
 

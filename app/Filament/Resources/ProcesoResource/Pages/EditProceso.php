@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ProcesoResource\Pages;
 use App\Filament\Resources\ProcesoResource;
 use App\Models\EstadoCuenta;
 use Filament\Actions;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
 class EditProceso extends EditRecord
@@ -46,37 +47,23 @@ class EditProceso extends EditRecord
         }
 
         // Recalcular total general
-        $this->calcularTotalGeneral();
-    }
+        $this->record->calcularTotalGeneral();
 
-    protected function calcularTotalGeneral(): void
-    {
-        $total = 0;
-
-        // Sumar cursos
-        $total += $this->record->cursos()->sum('valor_recibir');
-
-        // Sumar renovaciones
-        $total += $this->record->renovaciones()->sum('valor_total');
-
-        // Sumar licencias
-        $total += $this->record->licencias()->sum('valor_total_licencia');
-
-        // Sumar traspasos
-        $total += $this->record->traspasos()->sum('total_recibir');
-
-        // Sumar runts
-        $total += $this->record->runts()->sum('valor_recibir');
-
-        // Sumar controversias
-        $total += $this->record->controversias()->sum('valor_controversia');
-
-        // Actualizar el total general
-        $this->record->update(['total_general' => $total]);
+        // Mostrar notificación
+        Notification::make()
+            ->title('Proceso actualizado')
+            ->success()
+            ->send();
     }
 
     protected function getRedirectUrl(): string
     {
+        // Redirigir a la tabla de procesos
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null; // Ya mostramos nuestra propia notificación
     }
 }

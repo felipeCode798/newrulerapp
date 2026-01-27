@@ -11,20 +11,27 @@ class Renovacion extends Model
 
     protected $fillable = [
         'nombre',
-        'tipo',
-        'precio_cliente',
+        'precio_renovacion',
+        'precio_examen',
+        'precio_lamina',
         'activo',
     ];
 
     protected $casts = [
-        'precio_cliente' => 'decimal:2',
+        'precio_renovacion' => 'decimal:2',
+        'precio_examen' => 'decimal:2',
+        'precio_lamina' => 'decimal:2',
         'activo' => 'boolean',
     ];
 
     public function tramitadores(): BelongsToMany
     {
         return $this->belongsToMany(Tramitador::class, 'tramitador_renovacion')
-            ->withPivot('precio_tramitador')
+            ->withPivot([
+                'precio_renovacion',
+                'precio_examen',
+                'precio_lamina'
+            ])
             ->withTimestamps();
     }
 }

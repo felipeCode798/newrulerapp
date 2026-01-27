@@ -11,18 +11,26 @@ class ProcesoRenovacion extends Model
 
     protected $fillable = [
         'proceso_id',
-        'renovaciones_seleccionadas',
+        'renovacion_id', // Cambiar de 'renovaciones_seleccionadas' a 'renovacion_id'
         'cedula',
+        'incluye_examen',
+        'incluye_lamina',
         'valor_total',
     ];
 
     protected $casts = [
-        'renovaciones_seleccionadas' => 'array',
+        'incluye_examen' => 'boolean',
+        'incluye_lamina' => 'boolean',
         'valor_total' => 'decimal:2',
     ];
 
     public function proceso(): BelongsTo
     {
         return $this->belongsTo(Proceso::class);
+    }
+
+    public function renovacion(): BelongsTo
+    {
+        return $this->belongsTo(Renovacion::class);
     }
 }

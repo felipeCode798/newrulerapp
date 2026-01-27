@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('renovaciones', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            $table->enum('tipo', ['solo_examen', 'examen_lamina']);
-            $table->decimal('precio_cliente', 10, 2)->default(0);
+            $table->decimal('precio_renovacion', 10, 2)->default(0);
+            $table->decimal('precio_examen', 10, 2)->default(0);
+            $table->decimal('precio_lamina', 10, 2)->default(0);
             $table->boolean('activo')->default(true);
             $table->timestamps();
         });

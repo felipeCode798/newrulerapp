@@ -13,8 +13,8 @@ class UserSeeder extends Seeder
         // Usuario Super Admin
         $admin = User::create([
             'name' => 'Super Admin',
-            'email' => 'admin@admin.com',
-            'password' => Hash::make('password'),
+            'email' => 'felipe@gmail.com',
+            'password' => Hash::make('123456'),
         ]);
         $admin->assignRole('super_admin');
 
@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
         $operador = User::create([
             'name' => 'Operador Sistema',
             'email' => 'operador@sistema.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('123456'),
         ]);
         $operador->assignRole('operador');
     }

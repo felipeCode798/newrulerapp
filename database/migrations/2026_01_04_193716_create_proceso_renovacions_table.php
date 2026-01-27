@@ -6,26 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('proceso_renovaciones', function (Blueprint $table) {
             $table->id();
             $table->foreignId('proceso_id')->constrained()->cascadeOnDelete();
-            $table->json('renovaciones_seleccionadas'); // IDs de renovaciones
+            $table->foreignId('renovacion_id')->constrained('renovaciones');
             $table->string('cedula');
+            $table->boolean('incluye_examen')->default(true);
+            $table->boolean('incluye_lamina')->default(true);
             $table->decimal('valor_total', 10, 2)->default(0);
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('proceso_renovacions');
+        Schema::dropIfExists('proceso_renovaciones');
     }
 };

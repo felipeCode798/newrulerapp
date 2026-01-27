@@ -20,6 +20,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class ProcesoResource extends Resource
 {
@@ -202,44 +204,66 @@ class ProcesoResource extends Resource
 
                 // RENOVACIONES
                 Forms\Components\Section::make('Renovaciones')
-                    ->schema([
-                        Forms\Components\Repeater::make('renovaciones')
-                            ->relationship('renovaciones')
-                            ->schema([
-                                Forms\Components\TextInput::make('cedula')
-                                    ->label('Cédula')
-                                    ->required()
-                                    ->default(function (Get $get) {
-                                        $tipoUsuario = $get('../../tipo_usuario');
-                                        if ($tipoUsuario === 'cliente') {
-                                            return $get('../../cliente_cedula_base');
-                                        }
-                                        return '';
-                                    }),
+                ->schema([
+                    Forms\Components\Repeater::make('renovaciones')
+                        ->relationship('renovaciones')
+                        ->schema([
+                            Forms\Components\TextInput::make('cedula')
+                                ->label('Cédula')
+                                ->required()
+                                ->default(function (Get $get) {
+                                    $tipoUsuario = $get('../../tipo_usuario');
+                                    if ($tipoUsuario === 'cliente') {
+                                        return $get('../../cliente_cedula_base');
+                                    }
+                                    return '';
+                                }),
 
-                                Forms\Components\CheckboxList::make('renovaciones_seleccionadas')
-                                    ->label('Renovaciones')
-                                    ->options(Renovacion::where('activo', true)->pluck('nombre', 'id'))
-                                    ->required()
-                                    ->live()
-                                    ->afterStateUpdated(function (Set $set, Get $get, $state) {
-                                        self::calcularValoresRenovacion($set, $get, $state);
-                                    })
-                                    ->columns(2),
+                            Forms\Components\Select::make('renovacion_id')
+                                ->label('Renovación')
+                                ->options(Renovacion::where('activo', true)->pluck('nombre', 'id'))
+                                ->required()
+                                ->live()
+                                ->searchable()
+                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                    $incluyeExamen = $get('incluye_examen') ?? true;
+                                    $incluyeLamina = $get('incluye_lamina') ?? true;
+                                    self::calcularValoresRenovacion($set, $get, $state, $incluyeExamen, $incluyeLamina);
+                                }),
 
-                                Forms\Components\TextInput::make('valor_total')
-                                    ->label('Valor Total')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->required()
-                                    ->disabled(),
-                            ])
-                            ->columns(1)
-                            ->defaultItems(0)
-                            ->addActionLabel('Agregar Renovación')
-                            ->collapsible(),
-                    ])
-                    ->collapsible(),
+                            Forms\Components\Checkbox::make('incluye_examen')
+                                ->label('Incluye Examen')
+                                ->default(true)
+                                ->live()
+                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                    $renovacionId = $get('renovacion_id');
+                                    $incluyeLamina = $get('incluye_lamina') ?? true;
+                                    self::calcularValoresRenovacion($set, $get, $renovacionId, $state, $incluyeLamina);
+                                }),
+
+                            Forms\Components\Checkbox::make('incluye_lamina')
+                                ->label('Incluye Lámina')
+                                ->default(true)
+                                ->live()
+                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                    $renovacionId = $get('renovacion_id');
+                                    $incluyeExamen = $get('incluye_examen') ?? true;
+                                    self::calcularValoresRenovacion($set, $get, $renovacionId, $incluyeExamen, $state);
+                                }),
+
+                            Forms\Components\TextInput::make('valor_total')
+                                ->label('Valor Total')
+                                ->numeric()
+                                ->prefix('$')
+                                ->required()
+                                ->disabled(),
+                        ])
+                        ->columns(4)
+                        ->defaultItems(0)
+                        ->addActionLabel('Agregar Renovación')
+                        ->collapsible(),
+                ])
+                ->collapsible(),
 
                 // LICENCIAS
                 Forms\Components\Section::make('Licencias')
@@ -650,13 +674,13 @@ class ProcesoResource extends Resource
     {
         $cursoId = $get('curso_id');
         $tipoUsuario = $get('../../tipo_usuario');
-
+    
         if (!$cursoId || !$porcentaje) {
             return;
         }
-
+    
         $curso = Curso::find($cursoId);
-
+    
         if ($tipoUsuario === 'cliente') {
             if ($porcentaje === '50') {
                 $set('valor_transito', $curso->precio_cliente_50_transito);
@@ -669,48 +693,87 @@ class ProcesoResource extends Resource
             $tramitadorId = $get('../../tramitador_id');
             if ($tramitadorId) {
                 $tramitador = Tramitador::find($tramitadorId);
-                if ($porcentaje === '50') {
-                    $set('valor_transito', $tramitador->curso_50_transito);
-                    $set('valor_recibir', $tramitador->curso_50_recibir);
+                $cursoPivot = $tramitador->cursos()
+                    ->where('curso_id', $cursoId)
+                    ->first();
+                
+                if ($cursoPivot) {
+                    if ($porcentaje === '50') {
+                        $set('valor_transito', $cursoPivot->pivot->precio_50_transito);
+                        $set('valor_recibir', $cursoPivot->pivot->precio_50_recibir);
+                    } else {
+                        $set('valor_transito', $cursoPivot->pivot->precio_20_transito);
+                        $set('valor_recibir', $cursoPivot->pivot->precio_20_recibir);
+                    }
                 } else {
-                    $set('valor_transito', $tramitador->curso_20_transito);
-                    $set('valor_recibir', $tramitador->curso_20_recibir);
-                }
-            }
-        }
-    }
-
-    protected static function calcularValoresRenovacion(Set $set, Get $get, $renovacionesIds)
-    {
-        if (empty($renovacionesIds)) {
-            $set('valor_total', 0);
-            return;
-        }
-
-        $tipoUsuario = $get('../../tipo_usuario');
-        $total = 0;
-
-        if ($tipoUsuario === 'cliente') {
-            $renovaciones = Renovacion::whereIn('id', $renovacionesIds)->get();
-            $total = $renovaciones->sum('precio_cliente');
-        } else {
-            $tramitadorId = $get('../../tramitador_id');
-            if ($tramitadorId) {
-                $tramitador = Tramitador::find($tramitadorId);
-                foreach ($renovacionesIds as $renovacionId) {
-                    $precio = $tramitador->renovaciones()
-                        ->where('renovacion_id', $renovacionId)
-                        ->first();
-                    if ($precio) {
-                        $total += $precio->pivot->precio_tramitador;
+                    // Si no tiene precio configurado, usar los predeterminados del tramitador
+                    if ($porcentaje === '50') {
+                        $set('valor_transito', $tramitador->curso_50_transito);
+                        $set('valor_recibir', $tramitador->curso_50_recibir);
+                    } else {
+                        $set('valor_transito', $tramitador->curso_20_transito);
+                        $set('valor_recibir', $tramitador->curso_20_recibir);
                     }
                 }
             }
         }
-
+    }
+    
+    protected static function calcularValoresRenovacion(Set $set, Get $get, $renovacionId, $incluyeExamen, $incluyeLamina)
+    {
+        if (!$renovacionId) {
+            $set('valor_total', 0);
+            return;
+        }
+    
+        $tipoUsuario = $get('../../tipo_usuario');
+        $total = 0;
+    
+        $renovacion = Renovacion::find($renovacionId);
+    
+        if ($tipoUsuario === 'cliente') {
+            // Para cliente
+            $total += $renovacion->precio_renovacion;
+            if ($incluyeExamen) {
+                $total += $renovacion->precio_examen;
+            }
+            if ($incluyeLamina) {
+                $total += $renovacion->precio_lamina;
+            }
+        } else {
+            // Para tramitador
+            $tramitadorId = $get('../../tramitador_id');
+            if ($tramitadorId) {
+                $tramitador = Tramitador::find($tramitadorId);
+                $precioPivot = $tramitador->renovaciones()
+                    ->where('renovacion_id', $renovacionId)
+                    ->first();
+                
+                if ($precioPivot) {
+                    // Usar precios específicos del tramitador
+                    $total += $precioPivot->pivot->precio_renovacion; // Corregido
+                    if ($incluyeExamen) {
+                        $total += $precioPivot->pivot->precio_examen; // Corregido
+                    }
+                    if ($incluyeLamina) {
+                        $total += $precioPivot->pivot->precio_lamina; // Corregido
+                    }
+                } else {
+                    // Si no tiene precios configurados, usar los predeterminados de la renovación
+                    $total += $renovacion->precio_renovacion;
+                    if ($incluyeExamen) {
+                        $total += $renovacion->precio_examen;
+                    }
+                    if ($incluyeLamina) {
+                        $total += $renovacion->precio_lamina;
+                    }
+                }
+            }
+        }
+    
         $set('valor_total', $total);
     }
-
+    
     protected static function calcularValoresLicencia($set, $escuelaId)
     {
         if (!$escuelaId) {
@@ -730,12 +793,18 @@ class ProcesoResource extends Resource
             $set('valor_examen_medico', 0);
         } else {
             $categorias = $get('categorias_seleccionadas') ?? [];
+            $totalExamen = 0;
             if (!empty($categorias)) {
-                $categoria = CategoriaLicencia::find($categorias[0]);
-                $set('valor_examen_medico', $categoria->examen_medico ?? 0);
+                foreach ($categorias as $categoriaId) {
+                    $categoria = CategoriaLicencia::find($categoriaId);
+                    if ($categoria) {
+                        $totalExamen += $categoria->examen_medico;
+                    }
+                }
             }
+            $set('valor_examen_medico', $totalExamen);
         }
-        self::recalcularTotalLicencia($set, $get('escuela_id'));
+        self::recalcularTotalLicencia($set, $get);
     }
 
     protected static function calcularValorImpresion(Set $set, Get $get, $estado)
@@ -744,12 +813,18 @@ class ProcesoResource extends Resource
             $set('valor_impresion', 0);
         } else {
             $categorias = $get('categorias_seleccionadas') ?? [];
+            $totalImpresion = 0;
             if (!empty($categorias)) {
-                $categoria = CategoriaLicencia::find($categorias[0]);
-                $set('valor_impresion', $categoria->lamina ?? 0);
+                foreach ($categorias as $categoriaId) {
+                    $categoria = CategoriaLicencia::find($categoriaId);
+                    if ($categoria) {
+                        $totalImpresion += $categoria->lamina;
+                    }
+                }
             }
+            $set('valor_impresion', $totalImpresion);
         }
-        self::recalcularTotalLicencia($set, $get('escuela_id'));
+        self::recalcularTotalLicencia($set, $get);
     }
 
     protected static function calcularValorSinCurso(Set $set, Get $get, $estado)
@@ -758,22 +833,41 @@ class ProcesoResource extends Resource
             $set('valor_sin_curso', 0);
         } else {
             $categorias = $get('categorias_seleccionadas') ?? [];
+            $totalSinCurso = 0;
             if (!empty($categorias)) {
-                $categoria = CategoriaLicencia::find($categorias[0]);
-                $set('valor_sin_curso', $categoria->sin_curso ?? 0);
+                foreach ($categorias as $categoriaId) {
+                    $categoria = CategoriaLicencia::find($categoriaId);
+                    if ($categoria) {
+                        $totalSinCurso += $categoria->sin_curso;
+                    }
+                }
             }
+            $set('valor_sin_curso', $totalSinCurso);
         }
-        self::recalcularTotalLicencia($set, $get('escuela_id'));
+        self::recalcularTotalLicencia($set, $get);
     }
 
-    protected static function recalcularTotalLicencia(Set $set, $get)
+    protected static function recalcularTotalLicencia(Set $set, Get $get)
     {
-        $valorCarta = is_callable($get) ? $get('valor_carta_escuela') : 0;
-        $valorExamen = is_callable($get) ? $get('valor_examen_medico') : 0;
-        $valorImpresion = is_callable($get) ? $get('valor_impresion') : 0;
-        $valorSinCurso = is_callable($get) ? $get('valor_sin_curso') : 0;
-
-        $total = ($valorCarta ?? 0) + ($valorExamen ?? 0) + ($valorImpresion ??($valorSinCurso ?? 0));
+        $valorCarta = $get('valor_carta_escuela') ?? 0;
+        $valorExamen = $get('valor_examen_medico') ?? 0;
+        $valorImpresion = $get('valor_impresion') ?? 0;
+        $valorSinCurso = $get('valor_sin_curso') ?? 0;
+        
+        // Sumar también los honorarios de la categoría
+        $categorias = $get('categorias_seleccionadas') ?? [];
+        $totalHonorarios = 0;
+        
+        if (!empty($categorias)) {
+            foreach ($categorias as $categoriaId) {
+                $categoria = CategoriaLicencia::find($categoriaId);
+                if ($categoria) {
+                    $totalHonorarios += $categoria->honorarios;
+                }
+            }
+        }
+    
+        $total = $valorCarta + $valorExamen + $valorImpresion + $valorSinCurso + $totalHonorarios;
         $set('valor_total_licencia', $total);
     }
 
@@ -822,70 +916,273 @@ class ProcesoResource extends Resource
         }
     }
 
+
     public static function table(Table $table): Table
     {
         return $table
-        ->columns([
-            Tables\Columns\TextColumn::make('id')
-                ->label('#')
-                ->sortable(),
-            Tables\Columns\TextColumn::make('tipo_usuario')
-                ->label('Tipo')
-                ->badge()
-                ->formatStateUsing(fn (string $state): string => match ($state) {
-                    'cliente' => 'Cliente',
-                    'tramitador' => 'Tramitador',
-                })
-                ->color(fn (string $state): string => match ($state) {
-                    'cliente' => 'success',
-                    'tramitador' => 'info',
-                }),
-
-            Tables\Columns\TextColumn::make('cliente.nombre')
-                ->label('Cliente')
-                ->searchable()
-                ->sortable()
-                ->toggleable(),
-
-            Tables\Columns\TextColumn::make('tramitador.nombre')
-                ->label('Tramitador')
-                ->searchable()
-                ->sortable()
-                ->toggleable(),
-
-            Tables\Columns\TextColumn::make('total_general')
-                ->label('Total')
-                ->money('COP')
-                ->sortable(),
-
-            Tables\Columns\TextColumn::make('createdBy.name')
-                ->label('Creado Por')
-                ->sortable()
-                ->toggleable(),
-
-            Tables\Columns\TextColumn::make('created_at')
-                ->label('Fecha')
-                ->dateTime()
-                ->sortable(),
-        ])
-        ->filters([
-            Tables\Filters\SelectFilter::make('tipo_usuario')
-                ->label('Tipo de Usuario')
-                ->options([
-                    'cliente' => 'Cliente',
-                    'tramitador' => 'Tramitador',
-                ]),
-        ])
-        ->actions([
-            Tables\Actions\ViewAction::make(),
-            Tables\Actions\EditAction::make(),
-            Tables\Actions\DeleteAction::make(),
-        ])
-        ->bulkActions([
-            Tables\Actions\BulkActionGroup::make([
+            ->columns([
+                Tables\Columns\TextColumn::make('tipo_usuario')
+                    ->label('Tipo')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'cliente' => 'Cliente',
+                        'tramitador' => 'Tramitador',
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'cliente' => 'success',
+                        'tramitador' => 'info',
+                    })
+                    ->sortable()
+                    ->toggleable(),
+    
+                // Columna unificada para nombre
+                Tables\Columns\TextColumn::make('nombre_completo')
+                    ->label('Nombre')
+                    ->getStateUsing(function (Proceso $record) {
+                        if ($record->tipo_usuario === 'cliente' && $record->cliente) {
+                            return $record->cliente->nombre;
+                        } elseif ($record->tipo_usuario === 'tramitador' && $record->tramitador) {
+                            return $record->tramitador->nombre;
+                        }
+                        return '-';
+                    })
+                    ->searchable()
+                    ->sortable(),
+    
+                // Columna para cédula
+                Tables\Columns\TextColumn::make('cedula_completa')
+                    ->label('Cédula')
+                    ->getStateUsing(function (Proceso $record) {
+                        if ($record->tipo_usuario === 'cliente' && $record->cliente) {
+                            return $record->cliente->cedula;
+                        } elseif ($record->tipo_usuario === 'tramitador' && $record->tramitador) {
+                            return $record->tramitador->cedula ?? '-';
+                        }
+                        return '-';
+                    })
+                    ->searchable(),
+    
+                // Columna de servicio
+                Tables\Columns\TextColumn::make('tipo_servicio')
+                    ->label('Servicio')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'curso' => 'Curso',
+                        'renovacion' => 'Renovación',
+                        'licencia' => 'Licencia',
+                        'traspaso' => 'Traspaso',
+                        'runt' => 'RUNT',
+                        'controversia' => 'Controversia',
+                        default => ucfirst($state),
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'curso' => 'primary',
+                        'renovacion' => 'warning',
+                        'licencia' => 'success',
+                        'traspaso' => 'danger',
+                        'runt' => 'info',
+                        'controversia' => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+    
+                Tables\Columns\TextColumn::make('total_general')
+                    ->label('Total')
+                    ->money('COP')
+                    ->sortable()
+                    ->color('success')
+                    ->weight('bold'),
+    
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Fecha')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('tipo_usuario')
+                    ->label('Tipo de Usuario')
+                    ->options([
+                        'cliente' => 'Cliente',
+                        'tramitador' => 'Tramitador',
+                    ])
+                    ->searchable(),
+    
+                Tables\Filters\SelectFilter::make('tipo_servicio')
+                    ->label('Tipo de Servicio')
+                    ->options([
+                        'curso' => 'Curso',
+                        'renovacion' => 'Renovación',
+                        'licencia' => 'Licencia',
+                        'traspaso' => 'Traspaso',
+                        'runt' => 'RUNT',
+                        'controversia' => 'Controversia',
+                    ])
+                    ->searchable(),
+    
+                // Filtro para clientes
+                Tables\Filters\SelectFilter::make('cliente_id')
+                    ->label('Cliente')
+                    ->relationship('cliente', 'nombre')
+                    ->searchable()
+                    ->preload()
+                    ->multiple(),
+    
+                // Filtro para tramitadores
+                Tables\Filters\SelectFilter::make('tramitador_id')
+                    ->label('Tramitador')
+                    ->relationship('tramitador', 'nombre')
+                    ->searchable()
+                    ->preload()
+                    ->multiple(),
+    
+                Tables\Filters\Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('created_from')
+                            ->label('Desde')
+                            ->placeholder('Seleccione fecha inicial'),
+                        Forms\Components\DatePicker::make('created_until')
+                            ->label('Hasta')
+                            ->placeholder('Seleccione fecha final'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'] ?? null,
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'] ?? null,
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): ?string {
+                        if (!$data['created_from'] && !$data['created_until']) {
+                            return null;
+                        }
+                        
+                        $indicators = [];
+                        if ($data['created_from']) {
+                            $indicators[] = 'Desde: ' . \Carbon\Carbon::parse($data['created_from'])->format('d/m/Y');
+                        }
+                        if ($data['created_until']) {
+                            $indicators[] = 'Hasta: ' . \Carbon\Carbon::parse($data['created_until'])->format('d/m/Y');
+                        }
+                        
+                        return implode(' ', $indicators);
+                    }),
+            ])
+            ->filtersLayout(Tables\Enums\FiltersLayout::AboveContentCollapsible)
+            ->filtersFormColumns(2)
+            ->actions([
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()
+                        ->color('info'),
+                    Tables\Actions\EditAction::make()
+                        ->color('warning'),
+                    Tables\Actions\DeleteAction::make()
+                        ->color('danger'),
+                    Tables\Actions\Action::make('duplicar')
+                        ->label('Duplicar')
+                        ->icon('heroicon-o-document-duplicate')
+                        ->color('gray')
+                        ->action(function (Proceso $record) {
+                            // Duplicar el proceso
+                            $nuevoProceso = $record->replicate();
+                            $nuevoProceso->created_at = now();
+                            $nuevoProceso->save();
+                            
+                            // Duplicar los cursos si existen
+                            if ($record->cursos()->exists()) {
+                                foreach ($record->cursos as $curso) {
+                                    $nuevoCurso = $curso->replicate();
+                                    $nuevoCurso->proceso_id = $nuevoProceso->id;
+                                    $nuevoCurso->save();
+                                }
+                            }
+                            
+                            // Duplicar las renovaciones si existen
+                            if ($record->renovaciones()->exists()) {
+                                foreach ($record->renovaciones as $renovacion) {
+                                    $nuevaRenovacion = $renovacion->replicate();
+                                    $nuevaRenovacion->proceso_id = $nuevoProceso->id;
+                                    $nuevaRenovacion->save();
+                                }
+                            }
+                            
+                            // Duplicar licencias
+                            if ($record->licencias()->exists()) {
+                                foreach ($record->licencias as $licencia) {
+                                    $nuevaLicencia = $licencia->replicate();
+                                    $nuevaLicencia->proceso_id = $nuevoProceso->id;
+                                    $nuevaLicencia->save();
+                                }
+                            }
+                            
+                            // Duplicar traspasos
+                            if ($record->traspasos()->exists()) {
+                                foreach ($record->traspasos as $traspaso) {
+                                    $nuevoTraspaso = $traspaso->replicate();
+                                    $nuevoTraspaso->proceso_id = $nuevoProceso->id;
+                                    $nuevoTraspaso->save();
+                                }
+                            }
+                            
+                            // Duplicar RUNTS
+                            if ($record->runts()->exists()) {
+                                foreach ($record->runts as $runt) {
+                                    $nuevoRunt = $runt->replicate();
+                                    $nuevoRunt->proceso_id = $nuevoProceso->id;
+                                    $nuevoRunt->save();
+                                }
+                            }
+                            
+                            // Duplicar controversias
+                            if ($record->controversias()->exists()) {
+                                foreach ($record->controversias as $controversia) {
+                                    $nuevaControversia = $controversia->replicate();
+                                    $nuevaControversia->proceso_id = $nuevoProceso->id;
+                                    $nuevaControversia->save();
+                                }
+                            }
+                            
+                            // Duplicar estados de cuenta
+                            if ($record->estadoCuentas()->exists()) {
+                                foreach ($record->estadoCuentas as $estadoCuenta) {
+                                    $nuevoEstadoCuenta = $estadoCuenta->replicate();
+                                    $nuevoEstadoCuenta->proceso_id = $nuevoProceso->id;
+                                    $nuevoEstadoCuenta->save();
+                                }
+                            }
+                            
+                            // Recalcular total
+                            $nuevoProceso->calcularTotalGeneral();
+                            
+                            return redirect()->route('filament.admin.resources.procesos.edit', $nuevoProceso);
+                        })
+                        ->requiresConfirmation()
+                        ->modalHeading('Duplicar Proceso')
+                        ->modalDescription('¿Estás seguro de que quieres duplicar este proceso?')
+                        ->modalSubmitActionLabel('Sí, duplicar'),
+                ])
+                ->label('Acciones')
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->button()
+                ->color('gray'),
+            ])
+            ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
-            ]),
-        ]);
+                Tables\Actions\BulkAction::make('exportar_csv')
+                    ->label('Exportar a CSV')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->action(function (Collection $records) {
+                        return (new \App\Exports\ProcesosExport($records))
+                            ->download('procesos_' . date('Y-m-d_H-i-s') . '.csv');
+                    }),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->striped()
+            ->paginated([10, 25, 50, 100]);
     }
 
     public static function getRelations(): array

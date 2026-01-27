@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProcesoResource\Pages;
 
 use App\Filament\Resources\ProcesoResource;
+use App\Exports\ProcesoFacturaManual;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Infolists;
@@ -15,10 +16,21 @@ class ViewProceso extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('descargar_factura')
+                ->label('Descargar Factura')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('success')
+                ->action(function () {
+                    $pdf = new ProcesoFacturaManual(collect([$this->record]));
+                    return $pdf->download('factura_proceso_' . $this->record->id);
+                }),
             Actions\EditAction::make(),
             Actions\DeleteAction::make(),
         ];
     }
+
+    
+
 
     public function infolist(Infolist $infolist): Infolist
     {
@@ -90,29 +102,31 @@ class ViewProceso extends ViewRecord
                     ->collapsible(),
 
                 Infolists\Components\Section::make('Renovaciones')
-                    ->schema([
-                        Infolists\Components\RepeatableEntry::make('renovaciones')
-                            ->schema([
-                                Infolists\Components\TextEntry::make('cedula')
-                                    ->label('Cédula'),
-                                Infolists\Components\TextEntry::make('renovaciones_seleccionadas')
-                                    ->label('Renovaciones')
-                                    ->formatStateUsing(function ($state) {
-                                        if (is_array($state)) {
-                                            $renovaciones = \App\Models\Renovacion::whereIn('id', $state)->pluck('nombre')->toArray();
-                                            return implode(', ', $renovaciones);
-                                        }
-                                        return '-';
-                                    })
-                                    ->columnSpan(2),
-                                Infolists\Components\TextEntry::make('valor_total')
-                                    ->label('Valor Total')
-                                    ->money('COP'),
-                            ])
-                            ->columns(4)
-                    ])
-                    ->visible(fn ($record) => $record->renovaciones()->count() > 0)
-                    ->collapsible(),
+                ->schema([
+                    Infolists\Components\RepeatableEntry::make('renovaciones')
+                        ->schema([
+                            Infolists\Components\TextEntry::make('cedula')
+                                ->label('Cédula'),
+                            Infolists\Components\TextEntry::make('renovacion.nombre')
+                                ->label('Renovación'),
+                            Infolists\Components\TextEntry::make('incluye_examen')
+                                ->label('Incluye Examen')
+                                ->badge()
+                                ->formatStateUsing(fn (bool $state): string => $state ? 'Sí' : 'No')
+                                ->color(fn (bool $state): string => $state ? 'success' : 'danger'),
+                            Infolists\Components\TextEntry::make('incluye_lamina')
+                                ->label('Incluye Lámina')
+                                ->badge()
+                                ->formatStateUsing(fn (bool $state): string => $state ? 'Sí' : 'No')
+                                ->color(fn (bool $state): string => $state ? 'success' : 'danger'),
+                            Infolists\Components\TextEntry::make('valor_total')
+                                ->label('Valor Total')
+                                ->money('COP'),
+                        ])
+                        ->columns(5)
+                ])
+                ->visible(fn ($record) => $record->renovaciones()->count() > 0)
+                ->collapsible(),
 
                 Infolists\Components\Section::make('Licencias')
                     ->schema([
