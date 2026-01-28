@@ -21,6 +21,8 @@ return new class extends Migration
             $table->decimal('pago', 10, 2)->default(0);
             $table->decimal('honorarios', 10, 2)->default(0);
             $table->decimal('valor_recibir', 10, 2)->default(0);
+            $table->enum('estado', ['pendiente', 'enviado', 'en_proceso', 'finalizado'])->default('pendiente');
+            $table->text('descripcion_general')->nullable();
             $table->timestamps();
         });
     }

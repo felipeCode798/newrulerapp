@@ -16,6 +16,11 @@ return new class extends Migration
             $table->foreignId('proceso_id')->constrained()->cascadeOnDelete();
             $table->foreignId('curso_id')->constrained();
             $table->string('cedula');
+            $table->string('nombre')->nullable();
+            $table->string('numero_comparendo')->nullable();
+            $table->foreignId('cia_id')->nullable()->constrained('cias');
+            $table->enum('estado', ['pendiente', 'enviado', 'en_proceso', 'finalizado'])->default('pendiente');
+            $table->text('descripcion_general')->nullable();
             $table->enum('porcentaje', ['50', '20']);
             $table->decimal('valor_transito', 10, 2)->default(0);
             $table->decimal('valor_recibir', 10, 2)->default(0);

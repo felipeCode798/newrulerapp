@@ -25,4 +25,9 @@ class CategoriaControversia extends Model
             ->withPivot('precio_tramitador')
             ->withTimestamps();
     }
+
+    public function procesosControversias()
+    {
+        return $this->hasMany(ProcesoControversia::class);
+    }
 }

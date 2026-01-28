@@ -22,9 +22,6 @@ class Proceso extends Model
         'total_general' => 'decimal:2',
     ];
 
-
-
-
     public function cliente(): BelongsTo
     {
         return $this->belongsTo(Cliente::class);
@@ -79,8 +76,9 @@ class Proceso extends Model
     {
         if ($this->tipo_usuario === 'cliente' && $this->cliente) {
             return $this->cliente->cedula ?? '-';
-        } elseif ($this->tipo_usuario === 'tramitador' && $this->tramitador) {
-            return $this->tramitador->cedula ?? '-';
+        } elseif ($this->tipo_usuario === 'tramitador') {
+            // Para tramitador, mostrar la cédula del beneficiario
+            return $this->obtenerCedulaBeneficiario();
         }
         
         return '-';
@@ -97,7 +95,128 @@ class Proceso extends Model
         return '-';
     }
 
-    // MODIFICA este método para evitar guardar si no hay cambios
+    /**
+     * Obtiene la cédula del beneficiario cuando el proceso es de un tramitador
+     */
+    private function obtenerCedulaBeneficiario(): string
+    {
+        // Cargar las relaciones necesarias si no están cargadas
+        $this->loadMissing([
+            'cursos' => fn($q) => $q->select('proceso_id', 'cedula'),
+            'renovaciones' => fn($q) => $q->select('proceso_id', 'cedula'),
+            'licencias' => fn($q) => $q->select('proceso_id', 'cedula'),
+            'traspasos' => fn($q) => $q->select('proceso_id', 'cedula'),
+            'runts' => fn($q) => $q->select('proceso_id', 'cedula'),
+            'controversias' => fn($q) => $q->select('proceso_id', 'cedula')
+        ]);
+
+        // Buscar en todas las relaciones posibles la cédula del beneficiario
+        
+        // Buscar en cursos
+        if ($this->cursos->isNotEmpty()) {
+            $curso = $this->cursos->first();
+            if ($curso && $curso->cedula) {
+                return $curso->cedula;
+            }
+        }
+        
+        // Buscar en renovaciones
+        if ($this->renovaciones->isNotEmpty()) {
+            $renovacion = $this->renovaciones->first();
+            if ($renovacion && $renovacion->cedula) {
+                return $renovacion->cedula;
+            }
+        }
+        
+        // Buscar en licencias
+        if ($this->licencias->isNotEmpty()) {
+            $licencia = $this->licencias->first();
+            if ($licencia && $licencia->cedula) {
+                return $licencia->cedula;
+            }
+        }
+        
+        // Buscar en traspasos
+        if ($this->traspasos->isNotEmpty()) {
+            $traspaso = $this->traspasos->first();
+            if ($traspaso && $traspaso->cedula) {
+                return $traspaso->cedula;
+            }
+        }
+        
+        // Buscar en RUNTS
+        if ($this->runts->isNotEmpty()) {
+            $runt = $this->runts->first();
+            if ($runt && $runt->cedula) {
+                return $runt->cedula;
+            }
+        }
+        
+        // Buscar en controversias
+        if ($this->controversias->isNotEmpty()) {
+            $controversia = $this->controversias->first();
+            if ($controversia && $controversia->cedula) {
+                return $controversia->cedula;
+            }
+        }
+        
+        // Si no se encuentra ninguna cédula, mostrar la del tramitador
+        return $this->tramitador->cedula ?? '-';
+    }
+
+    /**
+     * Método auxiliar para obtener el nombre del beneficiario
+     */
+    public function getNombreBeneficiarioAttribute(): string
+    {
+        if ($this->tipo_usuario === 'cliente' && $this->cliente) {
+            return $this->cliente->nombre ?? '-';
+        } elseif ($this->tipo_usuario === 'tramitador') {
+            // Para tramitador, buscar en los registros específicos
+            switch ($this->tipo_servicio) {
+                case 'curso':
+                    if ($this->cursos()->exists()) {
+                        $curso = $this->cursos()->first();
+                        if ($curso && $curso->cedula) {
+                            return "Cliente cédula: {$curso->cedula}";
+                        }
+                    }
+                    break;
+                    
+                case 'renovacion':
+                    if ($this->renovaciones()->exists()) {
+                        $renovacion = $this->renovaciones()->first();
+                        if ($renovacion && $renovacion->cedula) {
+                            return "Cliente cédula: {$renovacion->cedula}";
+                        }
+                    }
+                    break;
+                    
+                case 'traspaso':
+                    if ($this->traspasos()->exists()) {
+                        $traspaso = $this->traspasos()->first();
+                        if ($traspaso) {
+                            return $traspaso->nombre_propietario ?? "Cliente cédula: {$traspaso->cedula}";
+                        }
+                    }
+                    break;
+                    
+                case 'runt':
+                    if ($this->runts()->exists()) {
+                        $runt = $this->runts()->first();
+                        if ($runt) {
+                            return $runt->nombre ?? "Cliente cédula: {$runt->cedula}";
+                        }
+                    }
+                    break;
+            }
+            
+            return "Tramitador: {$this->tramitador->nombre}";
+        }
+        
+        return '-';
+    }
+
     public function calcularTotalGeneral(): void
     {
         $total = 0;

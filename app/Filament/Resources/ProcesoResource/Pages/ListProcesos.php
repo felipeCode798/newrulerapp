@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\ProcesoResource\Pages;
 
 use App\Filament\Resources\ProcesoResource;
-use App\Exports\ProcesosExport;
-use App\Exports\ProcesoFacturaManual; 
+use App\Exports\ProcesosExportManual;
+use App\Exports\ProcesosExportPDFManual;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Forms;
@@ -28,16 +28,23 @@ class ListProcesos extends ListRecords
                     Forms\Components\Select::make('formato')
                         ->label('Formato de exportación')
                         ->options([
-                            'csv' => 'Excel/CSV (.csv)',
-                            'pdf' => 'PDF/HTML (.html)',
+                            'xlsx' => 'Excel (.xlsx)',
+                            'csv' => 'CSV (.csv)',
+                            'pdf' => 'PDF (.pdf)',
                         ])
-                        ->default('csv')
+                        ->default('xlsx')
                         ->required(),
                     
                     Forms\Components\TextInput::make('nombre_archivo')
                         ->label('Nombre del archivo')
                         ->default('procesos_' . Date::now()->format('Y-m-d_H-i-s'))
                         ->required(),
+                    
+                    Forms\Components\Toggle::make('incluir_detalle')
+                        ->label('Incluir detalle en PDF')
+                        ->default(true)
+                        ->helperText('Incluye información detallada de cada proceso')
+                        ->visible(fn (Forms\Get $get) => $get('formato') === 'pdf'),
                 ])
                 ->action(function (array $data) {
                     $query = $this->getFilteredTableQuery();
@@ -47,12 +54,12 @@ class ListProcesos extends ListRecords
                         throw new \Exception('No hay datos para exportar con los filtros aplicados.');
                     }
                     
-                    if ($data['formato'] === 'csv') {
-                        return (new \App\Exports\ProcesosExport($procesos))->download($data['nombre_archivo']);
+                    if ($data['formato'] === 'pdf') {
+                        $export = new ProcesosExportPDFManual($procesos, 'Reporte de Procesos');
+                        return $export->download($data['nombre_archivo']);
                     } else {
-                        // Para HTML/PDF con estilo factura
-                        $pdf = new ProcesoFacturaManual($procesos);
-                        return $pdf->download($data['nombre_archivo']);
+                        $export = new ProcesosExportManual($procesos);
+                        return $export->download($data['nombre_archivo'], $data['formato']);
                     }
                 })
                 ->modalWidth('md')

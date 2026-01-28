@@ -149,12 +149,34 @@ class ProcesoResource extends Resource
                         Forms\Components\Repeater::make('cursos')
                             ->relationship('cursos')
                             ->schema([
+                                Forms\Components\TextInput::make('nombre')
+                                    ->label('Nombre del Cliente')
+                                    ->required()
+                                    ->columnSpan(2),
+
                                 Forms\Components\Select::make('curso_id')
                                     ->label('Curso')
                                     ->options(Curso::where('activo', true)->get()->pluck('categoria', 'id'))
                                     ->required()
                                     ->live()
                                     ->searchable(),
+
+                                Forms\Components\TextInput::make('numero_comparendo')
+                                    ->label('Número de Comparendo'),
+
+                                Forms\Components\Select::make('cia_id')
+                                    ->label('CIA')
+                                    ->options(function () {
+                                        return \App\Models\Cia::pluck('nombre', 'id')->toArray();
+                                    })
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm([
+                                        Forms\Components\TextInput::make('nombre')
+                                            ->required(),
+                                        Forms\Components\TextInput::make('direccion'),
+                                        Forms\Components\TextInput::make('telefono'),
+                                    ]),
 
                                 Forms\Components\TextInput::make('cedula')
                                     ->label('Cédula')
@@ -194,6 +216,22 @@ class ProcesoResource extends Resource
                                     ->required()
                                     ->reactive()
                                     ->disabled(),
+
+                                Forms\Components\Select::make('estado')
+                                    ->label('Estado')
+                                    ->options([
+                                        'pendiente' => 'Pendiente',
+                                        'enviado' => 'Enviado',
+                                        'en_proceso' => 'En Proceso',
+                                        'finalizado' => 'Finalizado',
+                                    ])
+                                    ->default('pendiente')
+                                    ->required(),
+
+                                Forms\Components\Textarea::make('descripcion_general')
+                                    ->label('Descripción General')
+                                    ->rows(2)
+                                    ->columnSpanFull(),
                             ])
                             ->columns(5)
                             ->defaultItems(0)
@@ -208,6 +246,11 @@ class ProcesoResource extends Resource
                     Forms\Components\Repeater::make('renovaciones')
                         ->relationship('renovaciones')
                         ->schema([
+                            Forms\Components\TextInput::make('nombre')
+                                    ->label('Nombre del Cliente')
+                                    ->required()
+                                    ->columnSpan(2),
+
                             Forms\Components\TextInput::make('cedula')
                                 ->label('Cédula')
                                 ->required()
@@ -257,6 +300,22 @@ class ProcesoResource extends Resource
                                 ->prefix('$')
                                 ->required()
                                 ->disabled(),
+
+                            Forms\Components\Select::make('estado')
+                                ->label('Estado')
+                                ->options([
+                                    'pendiente' => 'Pendiente',
+                                    'enviado' => 'Enviado',
+                                    'en_proceso' => 'En Proceso',
+                                    'finalizado' => 'Finalizado',
+                                ])
+                                ->default('pendiente')
+                                ->required(),
+
+                            Forms\Components\Textarea::make('descripcion_general')
+                                ->label('Descripción General')
+                                ->rows(2)
+                                ->columnSpanFull(),
                         ])
                         ->columns(4)
                         ->defaultItems(0)
@@ -317,6 +376,14 @@ class ProcesoResource extends Resource
                                             $set('pin_escuela_id', null);
                                         }
                                     }),
+
+                                Forms\Components\TextInput::make('valor_enrolamiento')
+                                    ->label('Valor Enrolamiento')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->default(0)
+                                    ->required(fn ($get) => $get('enrolamiento') === 'pagado')
+                                    ->visible(fn ($get) => $get('enrolamiento') === 'pagado'),
 
                                 Forms\Components\Select::make('pin_escuela_id')
                                     ->label('PIN de Escuela')
@@ -416,6 +483,21 @@ class ProcesoResource extends Resource
                                     ->required()
                                     ->disabled()
                                     ->columnSpan(3),
+                                    Forms\Components\Select::make('estado')
+                                    ->label('Estado')
+                                    ->options([
+                                        'pendiente' => 'Pendiente',
+                                        'enviado' => 'Enviado',
+                                        'en_proceso' => 'En Proceso',
+                                        'finalizado' => 'Finalizado',
+                                    ])
+                                    ->default('pendiente')
+                                    ->required(),
+
+                                Forms\Components\Textarea::make('descripcion_general')
+                                    ->label('Descripción General')
+                                    ->rows(2)
+                                    ->columnSpanFull(),
                             ])
                             ->columns(3)
                             ->defaultItems(0)
@@ -503,6 +585,22 @@ class ProcesoResource extends Resource
                                     ->prefix('$')
                                     ->required()
                                     ->disabled(),
+
+                                Forms\Components\Select::make('estado')
+                                    ->label('Estado')
+                                    ->options([
+                                        'pendiente' => 'Pendiente',
+                                        'enviado' => 'Enviado',
+                                        'en_proceso' => 'En Proceso',
+                                        'finalizado' => 'Finalizado',
+                                    ])
+                                    ->default('pendiente')
+                                    ->required(),
+
+                                Forms\Components\Textarea::make('descripcion_general')
+                                    ->label('Descripción General')
+                                    ->rows(2)
+                                    ->columnSpanFull(),
                             ])
                             ->columns(3)
                             ->defaultItems(0)
@@ -573,6 +671,22 @@ class ProcesoResource extends Resource
                                     ->prefix('$')
                                     ->required()
                                     ->disabled(),
+                                
+                                Forms\Components\Select::make('estado')
+                                    ->label('Estado')
+                                    ->options([
+                                        'pendiente' => 'Pendiente',
+                                        'enviado' => 'Enviado',
+                                        'en_proceso' => 'En Proceso',
+                                        'finalizado' => 'Finalizado',
+                                    ])
+                                    ->default('pendiente')
+                                    ->required(),
+
+                                Forms\Components\Textarea::make('descripcion_general')
+                                    ->label('Descripción General')
+                                    ->rows(2)
+                                    ->columnSpanFull(),
                             ])
                             ->columns(3)
                             ->defaultItems(0)
@@ -587,6 +701,13 @@ class ProcesoResource extends Resource
                         Forms\Components\Repeater::make('controversias')
                             ->relationship('controversias')
                             ->schema([
+                                Forms\Components\TextInput::make('nombre')
+                                    ->label('Nombre del Cliente')
+                                    ->required(),
+
+                                Forms\Components\TextInput::make('comparendo')
+                                    ->label('Número de Comparendo'),
+
                                 Forms\Components\TextInput::make('cedula')
                                     ->label('Cédula')
                                     ->required()
@@ -599,6 +720,9 @@ class ProcesoResource extends Resource
                                     })
                                     ->columnSpan(2),
 
+                                Forms\Components\TextInput::make('celular')
+                                    ->label('Celular'),
+
                                 Forms\Components\Select::make('categoria_controversia_id')
                                     ->label('Categoría')
                                     ->options(CategoriaControversia::where('activo', true)->pluck('nombre', 'id'))
@@ -608,6 +732,20 @@ class ProcesoResource extends Resource
                                         self::calcularValorControversia($set, $get, $state);
                                     })
                                     ->columnSpan(2),
+
+                                Forms\Components\Select::make('cia_id')
+                                    ->label('CIA')
+                                    ->options(function () {
+                                        return \App\Models\Cia::pluck('nombre', 'id')->toArray();
+                                    })
+                                    ->searchable()
+                                    ->preload(),
+
+                                Forms\Components\TextInput::make('precio_cia')
+                                    ->label('Precio CIA')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->default(0),
 
                                 Forms\Components\TextInput::make('valor_controversia')
                                     ->label('Valor Controversia')
@@ -646,6 +784,26 @@ class ProcesoResource extends Resource
                                     ->directory('controversias/poderes')
                                     ->acceptedFileTypes(['application/pdf', 'image/*'])
                                     ->columnSpan(2),
+
+                                Forms\Components\Toggle::make('debe')
+                                    ->label('¿Debe?')
+                                    ->default(false),
+
+                                    Forms\Components\Select::make('estado')
+                                    ->label('Estado')
+                                    ->options([
+                                        'pendiente' => 'Pendiente',
+                                        'enviado' => 'Enviado',
+                                        'en_proceso' => 'En Proceso',
+                                        'finalizado' => 'Finalizado',
+                                    ])
+                                    ->default('pendiente')
+                                    ->required(),
+
+                                Forms\Components\Textarea::make('descripcion_general')
+                                    ->label('Descripción General')
+                                    ->rows(2)
+                                    ->columnSpanFull(),
                             ])
                             ->columns(4)
                             ->defaultItems(0)
@@ -921,52 +1079,24 @@ class ProcesoResource extends Resource
     {
         return $table
             ->columns([
+
                 Tables\Columns\TextColumn::make('tipo_usuario')
-                    ->label('Tipo')
+                    ->label('Tipo Usuario')
+                    ->formatStateUsing(fn ($state) => $state === 'cliente' ? 'Cliente' : 'Tramitador')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'cliente' => 'Cliente',
-                        'tramitador' => 'Tramitador',
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'cliente' => 'success',
-                        'tramitador' => 'info',
-                    })
-                    ->sortable()
-                    ->toggleable(),
-    
-                // Columna unificada para nombre
+                    ->color(fn ($state) => $state === 'cliente' ? 'success' : 'warning'),
+
                 Tables\Columns\TextColumn::make('nombre_completo')
-                    ->label('Nombre')
-                    ->getStateUsing(function (Proceso $record) {
-                        if ($record->tipo_usuario === 'cliente' && $record->cliente) {
-                            return $record->cliente->nombre;
-                        } elseif ($record->tipo_usuario === 'tramitador' && $record->tramitador) {
-                            return $record->tramitador->nombre;
-                        }
-                        return '-';
-                    })
-                    ->searchable()
-                    ->sortable(),
-    
-                // Columna para cédula
+                    ->label('Cliente/Tramitador')
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('cedula_completa')
                     ->label('Cédula')
-                    ->getStateUsing(function (Proceso $record) {
-                        if ($record->tipo_usuario === 'cliente' && $record->cliente) {
-                            return $record->cliente->cedula;
-                        } elseif ($record->tipo_usuario === 'tramitador' && $record->tramitador) {
-                            return $record->tramitador->cedula ?? '-';
-                        }
-                        return '-';
-                    })
                     ->searchable(),
-    
-                // Columna de servicio
+
                 Tables\Columns\TextColumn::make('tipo_servicio')
-                    ->label('Servicio')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                    ->label('Tipo Servicio')
+                    ->formatStateUsing(fn ($state) => match($state) {
                         'curso' => 'Curso',
                         'renovacion' => 'Renovación',
                         'licencia' => 'Licencia',
@@ -975,29 +1105,56 @@ class ProcesoResource extends Resource
                         'controversia' => 'Controversia',
                         default => ucfirst($state),
                     })
-                    ->color(fn (string $state): string => match ($state) {
-                        'curso' => 'primary',
-                        'renovacion' => 'warning',
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        'curso' => 'info',
+                        'renovacion' => 'primary',
                         'licencia' => 'success',
-                        'traspaso' => 'danger',
-                        'runt' => 'info',
+                        'traspaso' => 'warning',
+                        'runt' => 'danger',
                         'controversia' => 'gray',
+                        default => 'secondary',
+                    }),
+
+
+                Tables\Columns\TextColumn::make('estado')
+                    ->label('Estado')
+                    ->getStateUsing(function ($record) {
+                        if ($record->cursos()->count() > 0) {
+                            return $record->cursos->first()->estado ?? 'pendiente';
+                        }
+                        if ($record->renovaciones()->count() > 0) {
+                            return $record->renovaciones->first()->estado ?? 'pendiente';
+                        }
+                        if ($record->licencias()->count() > 0) {
+                            return $record->licencias->first()->estado ?? 'pendiente';
+                        }
+                        if ($record->controversias()->count() > 0) {
+                            return $record->controversias->first()->estado ?? 'pendiente';
+                        }
+                        return 'pendiente';
+                    })
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        'pendiente' => 'gray',
+                        'enviado' => 'info',
+                        'en_proceso' => 'warning',
+                        'finalizado' => 'success',
                         default => 'gray',
                     })
-                    ->sortable(),
-    
+                    ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state))),
+
                 Tables\Columns\TextColumn::make('total_general')
                     ->label('Total')
                     ->money('COP')
                     ->sortable()
-                    ->color('success')
-                    ->weight('bold'),
-    
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Fecha')
+                    ->color('success'),
+
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Última Actualización')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('tipo_usuario')
@@ -1005,9 +1162,8 @@ class ProcesoResource extends Resource
                     ->options([
                         'cliente' => 'Cliente',
                         'tramitador' => 'Tramitador',
-                    ])
-                    ->searchable(),
-    
+                    ]),
+
                 Tables\Filters\SelectFilter::make('tipo_servicio')
                     ->label('Tipo de Servicio')
                     ->options([
@@ -1017,59 +1173,100 @@ class ProcesoResource extends Resource
                         'traspaso' => 'Traspaso',
                         'runt' => 'RUNT',
                         'controversia' => 'Controversia',
-                    ])
-                    ->searchable(),
-    
-                // Filtro para clientes
-                Tables\Filters\SelectFilter::make('cliente_id')
-                    ->label('Cliente')
-                    ->relationship('cliente', 'nombre')
-                    ->searchable()
-                    ->preload()
-                    ->multiple(),
-    
-                // Filtro para tramitadores
-                Tables\Filters\SelectFilter::make('tramitador_id')
-                    ->label('Tramitador')
-                    ->relationship('tramitador', 'nombre')
-                    ->searchable()
-                    ->preload()
-                    ->multiple(),
-    
-                Tables\Filters\Filter::make('created_at')
+                    ]),
+
+                Tables\Filters\SelectFilter::make('estado_cursos')
+                    ->label('Estado de Cursos')
+                    ->query(function ($query, $state) {
+                        if ($state['value']) {
+                            $query->whereHas('cursos', function ($q) use ($state) {
+                                $q->where('estado', $state['value']);
+                            });
+                        }
+                    })
+                    ->options([
+                        'pendiente' => 'Pendiente',
+                        'enviado' => 'Enviado',
+                        'en_proceso' => 'En Proceso',
+                        'finalizado' => 'Finalizado',
+                    ]),
+
+                Tables\Filters\SelectFilter::make('estado_renovaciones')
+                    ->label('Estado de Renovaciones')
+                    ->query(function ($query, $state) {
+                        if ($state['value']) {
+                            $query->whereHas('renovaciones', function ($q) use ($state) {
+                                $q->where('estado', $state['value']);
+                            });
+                        }
+                    })
+                    ->options([
+                        'pendiente' => 'Pendiente',
+                        'enviado' => 'Enviado',
+                        'en_proceso' => 'En Proceso',
+                        'finalizado' => 'Finalizado',
+                    ]),
+
+                Tables\Filters\SelectFilter::make('estado_licencias')
+                    ->label('Estado de Licencias')
+                    ->query(function ($query, $state) {
+                        if ($state['value']) {
+                            $query->whereHas('licencias', function ($q) use ($state) {
+                                $q->where('estado', $state['value']);
+                            });
+                        }
+                    })
+                    ->options([
+                        'pendiente' => 'Pendiente',
+                        'enviado' => 'Enviado',
+                        'en_proceso' => 'En Proceso',
+                        'finalizado' => 'Finalizado',
+                    ]),
+
+                Tables\Filters\SelectFilter::make('estado_controversias')
+                    ->label('Estado de Controversias')
+                    ->query(function ($query, $state) {
+                        if ($state['value']) {
+                            $query->whereHas('controversias', function ($q) use ($state) {
+                                $q->where('estado', $state['value']);
+                            });
+                        }
+                    })
+                    ->options([
+                        'pendiente' => 'Pendiente',
+                        'enviado' => 'Enviado',
+                        'en_proceso' => 'En Proceso',
+                        'finalizado' => 'Finalizado',
+                    ]),
+
+                Tables\Filters\Filter::make('fecha_creacion')
+                    ->label('Fecha de Creación')
                     ->form([
                         Forms\Components\DatePicker::make('created_from')
-                            ->label('Desde')
-                            ->placeholder('Seleccione fecha inicial'),
+                            ->label('Desde'),
                         Forms\Components\DatePicker::make('created_until')
-                            ->label('Hasta')
-                            ->placeholder('Seleccione fecha final'),
+                            ->label('Hasta'),
                     ])
-                    ->query(function (Builder $query, array $data): Builder {
+                    ->query(function ($query, array $data) {
                         return $query
-                            ->when(
-                                $data['created_from'] ?? null,
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
-                            )
-                            ->when(
-                                $data['created_until'] ?? null,
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
-                            );
-                    })
-                    ->indicateUsing(function (array $data): ?string {
-                        if (!$data['created_from'] && !$data['created_until']) {
-                            return null;
-                        }
-                        
-                        $indicators = [];
-                        if ($data['created_from']) {
-                            $indicators[] = 'Desde: ' . \Carbon\Carbon::parse($data['created_from'])->format('d/m/Y');
-                        }
-                        if ($data['created_until']) {
-                            $indicators[] = 'Hasta: ' . \Carbon\Carbon::parse($data['created_until'])->format('d/m/Y');
-                        }
-                        
-                        return implode(' ', $indicators);
+                            ->when($data['created_from'], fn ($q, $date) => $q->whereDate('created_at', '>=', $date))
+                            ->when($data['created_until'], fn ($q, $date) => $q->whereDate('created_at', '<=', $date));
+                    }),
+
+                Tables\Filters\Filter::make('total_general')
+                    ->label('Total General')
+                    ->form([
+                        Forms\Components\TextInput::make('min')
+                            ->label('Mínimo')
+                            ->numeric(),
+                        Forms\Components\TextInput::make('max')
+                            ->label('Máximo')
+                            ->numeric(),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query
+                            ->when($data['min'], fn ($q, $amount) => $q->where('total_general', '>=', $amount))
+                            ->when($data['max'], fn ($q, $amount) => $q->where('total_general', '<=', $amount));
                     }),
             ])
             ->filtersLayout(Tables\Enums\FiltersLayout::AboveContentCollapsible)
@@ -1172,18 +1369,27 @@ class ProcesoResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
-                Tables\Actions\BulkAction::make('exportar_csv')
-                    ->label('Exportar a CSV')
+                Tables\Actions\BulkAction::make('exportar_excel')
+                    ->label('Exportar a Excel')
                     ->icon('heroicon-o-document-arrow-down')
                     ->action(function (Collection $records) {
-                        return (new \App\Exports\ProcesosExport($records))
-                            ->download('procesos_' . date('Y-m-d_H-i-s') . '.csv');
+                        return (new \App\Exports\ProcesosExportManual($records))
+                            ->download('procesos_' . date('Y-m-d_H-i-s'), 'xlsx');
+                    }),
+                Tables\Actions\BulkAction::make('exportar_pdf')
+                    ->label('Exportar a PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('warning')
+                    ->action(function (Collection $records) {
+                        return (new \App\Exports\ProcesoFacturaManual($records))
+                            ->download('procesos_' . date('Y-m-d_H-i-s'));
                     }),
             ])
             ->defaultSort('created_at', 'desc')
             ->striped()
             ->paginated([10, 25, 50, 100]);
     }
+
 
     public static function getRelations(): array
     {

@@ -10,10 +10,15 @@ class ProcesoCurso extends Model
     protected $fillable = [
         'proceso_id',
         'curso_id',
+        'nombre', // Asegúrate de tener este campo
+        'numero_comparendo', // Asegúrate de tener este campo
+        'cia_id', // Asegúrate de tener este campo
         'cedula',
         'porcentaje',
         'valor_transito',
         'valor_recibir',
+        'estado', // Asegúrate de tener este campo
+        'descripcion_general', // Asegúrate de tener este campo
     ];
 
     protected $casts = [
@@ -29,5 +34,11 @@ class ProcesoCurso extends Model
     public function curso(): BelongsTo
     {
         return $this->belongsTo(Curso::class);
+    }
+
+    // ¡AGREGA ESTA RELACIÓN!
+    public function cia(): BelongsTo
+    {
+        return $this->belongsTo(Cia::class);
     }
 }

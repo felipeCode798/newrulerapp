@@ -13,9 +13,12 @@ return new class extends Migration
             $table->foreignId('proceso_id')->constrained()->cascadeOnDelete();
             $table->foreignId('renovacion_id')->constrained('renovaciones');
             $table->string('cedula');
+            $table->string('nombre')->nullable();
             $table->boolean('incluye_examen')->default(true);
             $table->boolean('incluye_lamina')->default(true);
             $table->decimal('valor_total', 10, 2)->default(0);
+            $table->enum('estado', ['pendiente', 'enviado', 'en_proceso', 'finalizado'])->default('pendiente');
+            $table->text('descripcion_general')->nullable();
             $table->timestamps();
         });
     }

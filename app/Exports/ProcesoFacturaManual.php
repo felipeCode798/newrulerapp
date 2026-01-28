@@ -66,10 +66,12 @@ class ProcesoFacturaManual
         $totalRunts = $proceso->runts()->sum('valor_recibir');
         $totalControversias = $proceso->controversias()->sum('valor_controversia');
 
+        // Usar el método getCedulaCompletaAttribute del modelo para obtener la cédula correcta
         $clienteNombre = $proceso->tipo_usuario == 'cliente' ? $proceso->cliente->nombre ?? '-' : '-';
         $clienteCedula = $proceso->tipo_usuario == 'cliente' ? $proceso->cliente->cedula ?? '-' : '-';
         $tramitadorNombre = $proceso->tipo_usuario == 'tramitador' ? $proceso->tramitador->nombre ?? '-' : '-';
         $tramitadorCedula = $proceso->tipo_usuario == 'tramitador' ? $proceso->tramitador->cedula ?? '-' : '-';
+        $cedulaBeneficiario = $proceso->cedula_completa; // Usar el método corregido del modelo
 
         $html = '<!DOCTYPE html>
 <html lang="es">
@@ -294,13 +296,13 @@ class ProcesoFacturaManual
         if ($proceso->tipo_usuario == 'cliente') {
             $html .= 'INFORMACIÓN DEL CLIENTE';
         } else {
-            $html .= 'INFORMACIÓN DEL TRAMITADOR';
+            $html .= 'INFORMACIÓN DEL TRAMITADOR Y BENEFICIARIO';
         }
         
         $html .= '</div>
         <div class="info-grid">
             <div class="info-item">
-                <strong>Nombre:</strong> ';
+                <strong>' . ($proceso->tipo_usuario == 'cliente' ? 'Nombre Cliente:' : 'Nombre Tramitador:') . '</strong> ';
         
         if ($proceso->tipo_usuario == 'cliente') {
             $html .= $clienteNombre;
@@ -310,7 +312,7 @@ class ProcesoFacturaManual
         
         $html .= '</div>
             <div class="info-item">
-                <strong>Cédula:</strong> ';
+                <strong>' . ($proceso->tipo_usuario == 'cliente' ? 'Cédula Cliente:' : 'Cédula Tramitador:') . '</strong> ';
         
         if ($proceso->tipo_usuario == 'cliente') {
             $html .= $clienteCedula;
@@ -318,7 +320,18 @@ class ProcesoFacturaManual
             $html .= $tramitadorCedula;
         }
         
-        $html .= '</div>
+        // Mostrar información del beneficiario cuando es tramitador
+        if ($proceso->tipo_usuario == 'tramitador') {
+            $html .= '</div>
+            <div class="info-item">
+                <strong>Cédula Beneficiario:</strong> ' . $cedulaBeneficiario . '
+            </div>';
+        } else {
+            $html .= '</div>
+            <div class="info-item"></div>';
+        }
+        
+        $html .= '
             <div class="info-item">
                 <strong>Tipo:</strong> ';
         
@@ -339,7 +352,7 @@ class ProcesoFacturaManual
                 <thead>
                     <tr>
                         <th>Curso</th>
-                        <th>Cédula</th>
+                        <th>Cédula Beneficiario</th>
                         <th>Porcentaje</th>
                         <th>Valor a Recibir</th>
                     </tr>
@@ -372,7 +385,7 @@ class ProcesoFacturaManual
                 <thead>
                     <tr>
                         <th>Renovación</th>
-                        <th>Cédula</th>
+                        <th>Cédula Beneficiario</th>
                         <th>Examen</th>
                         <th>Lámina</th>
                         <th>Valor Total</th>
@@ -406,7 +419,7 @@ class ProcesoFacturaManual
             <table class="detail-table">
                 <thead>
                     <tr>
-                        <th>Cédula</th>
+                        <th>Cédula Beneficiario</th>
                         <th>Categorías</th>
                         <th>Escuela</th>
                         <th>Total</th>
@@ -434,6 +447,105 @@ class ProcesoFacturaManual
                     <tr class="subtotal-row">
                         <td colspan="3" class="amount"><strong>Subtotal Licencias:</strong></td>
                         <td class="amount"><strong>$ ' . number_format($totalLicencias, 2, ',', '.') . '</strong></td>
+                    </tr>
+                </tfoot>
+            </table>';
+        }
+
+        // Sección de Traspasos
+        if ($proceso->traspasos()->count() > 0) {
+            $html .= '<h3 style="font-size: 18px; color: #2C3E50; margin: 25px 0 15px; padding-bottom: 5px; border-bottom: 2px solid #2C3E50;">TRASPASOS</h3>
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th>Cédula Propietario</th>
+                        <th>Propietario</th>
+                        <th>Comprador</th>
+                        <th>Cédula Comprador</th>
+                        <th>Total a Recibir</th>
+                    </tr>
+                </thead>
+                <tbody>';
+            
+            foreach ($proceso->traspasos as $traspaso) {
+                $html .= '<tr>
+                    <td>' . $traspaso->cedula . '</td>
+                    <td>' . $traspaso->nombre_propietario . '</td>
+                    <td>' . $traspaso->nombre_comprador . '</td>
+                    <td>' . $traspaso->cedula_comprador . '</td>
+                    <td class="amount">$ ' . number_format($traspaso->total_recibir, 2, ',', '.') . '</td>
+                </tr>';
+            }
+            
+            $html .= '</tbody>
+                <tfoot>
+                    <tr class="subtotal-row">
+                        <td colspan="4" class="amount"><strong>Subtotal Traspasos:</strong></td>
+                        <td class="amount"><strong>$ ' . number_format($totalTraspasos, 2, ',', '.') . '</strong></td>
+                    </tr>
+                </tfoot>
+            </table>';
+        }
+
+        // Sección de RUNT
+        if ($proceso->runts()->count() > 0) {
+            $html .= '<h3 style="font-size: 18px; color: #2C3E50; margin: 25px 0 15px; padding-bottom: 5px; border-bottom: 2px solid #2C3E50;">RUNT</h3>
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Cédula Beneficiario</th>
+                        <th>Número</th>
+                        <th>Total a Recibir</th>
+                    </tr>
+                </thead>
+                <tbody>';
+            
+            foreach ($proceso->runts as $runt) {
+                $html .= '<tr>
+                    <td>' . $runt->nombre . '</td>
+                    <td>' . $runt->cedula . '</td>
+                    <td>' . $runt->numero . '</td>
+                    <td class="amount">$ ' . number_format($runt->valor_recibir, 2, ',', '.') . '</td>
+                </tr>';
+            }
+            
+            $html .= '</tbody>
+                <tfoot>
+                    <tr class="subtotal-row">
+                        <td colspan="3" class="amount"><strong>Subtotal RUNT:</strong></td>
+                        <td class="amount"><strong>$ ' . number_format($totalRunts, 2, ',', '.') . '</strong></td>
+                    </tr>
+                </tfoot>
+            </table>';
+        }
+
+        // Sección de Controversias
+        if ($proceso->controversias()->count() > 0) {
+            $html .= '<h3 style="font-size: 18px; color: #2C3E50; margin: 25px 0 15px; padding-bottom: 5px; border-bottom: 2px solid #2C3E50;">CONTROVERSIAS</h3>
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th>Cédula Beneficiario</th>
+                        <th>Categoría</th>
+                        <th>Valor Controversia</th>
+                    </tr>
+                </thead>
+                <tbody>';
+            
+            foreach ($proceso->controversias as $controversia) {
+                $html .= '<tr>
+                    <td>' . $controversia->cedula . '</td>
+                    <td>' . ($controversia->categoriaControversia->nombre ?? 'N/A') . '</td>
+                    <td class="amount">$ ' . number_format($controversia->valor_controversia, 2, ',', '.') . '</td>
+                </tr>';
+            }
+            
+            $html .= '</tbody>
+                <tfoot>
+                    <tr class="subtotal-row">
+                        <td colspan="2" class="amount"><strong>Subtotal Controversias:</strong></td>
+                        <td class="amount"><strong>$ ' . number_format($totalControversias, 2, ',', '.') . '</strong></td>
                     </tr>
                 </tfoot>
             </table>';
@@ -703,7 +815,8 @@ class ProcesoFacturaManual
                 <th>Fecha</th>
                 <th>Tipo</th>
                 <th>Cliente/Tramitador</th>
-                <th>Cédula</th>
+                <th>Cédula Beneficiario</th>
+                <th>Servicio</th>
                 <th>Total Cursos</th>
                 <th>Total Renovaciones</th>
                 <th>Total Licencias</th>
@@ -717,6 +830,18 @@ class ProcesoFacturaManual
             $clienteCedula = $proceso->tipo_usuario == 'cliente' ? $proceso->cliente->cedula ?? '-' : '-';
             $tramitadorNombre = $proceso->tipo_usuario == 'tramitador' ? $proceso->tramitador->nombre ?? '-' : '-';
             $tramitadorCedula = $proceso->tipo_usuario == 'tramitador' ? $proceso->tramitador->cedula ?? '-' : '-';
+            $cedulaBeneficiario = $proceso->cedula_completa; // Usar el método corregido
+            
+            // Obtener el texto del servicio
+            $servicioText = match($proceso->tipo_servicio) {
+                'curso' => 'Curso',
+                'renovacion' => 'Renovación',
+                'licencia' => 'Licencia',
+                'traspaso' => 'Traspaso',
+                'runt' => 'RUNT',
+                'controversia' => 'Controversia',
+                default => ucfirst($proceso->tipo_servicio),
+            };
             
             $html .= '<tr>
                 <td>' . $proceso->id . '</td>
@@ -731,7 +856,8 @@ class ProcesoFacturaManual
             
             $html .= '</td>
                 <td>' . ($proceso->tipo_usuario == 'cliente' ? $clienteNombre : $tramitadorNombre) . '</td>
-                <td>' . ($proceso->tipo_usuario == 'cliente' ? $clienteCedula : $tramitadorCedula) . '</td>
+                <td>' . $cedulaBeneficiario . '</td>
+                <td>' . $servicioText . '</td>
                 <td class="amount">$ ' . number_format($proceso->cursos()->sum('valor_recibir'), 2, ',', '.') . '</td>
                 <td class="amount">$ ' . number_format($proceso->renovaciones()->sum('valor_total'), 2, ',', '.') . '</td>
                 <td class="amount">$ ' . number_format($proceso->licencias()->sum('valor_total_licencia'), 2, ',', '.') . '</td>
@@ -742,7 +868,7 @@ class ProcesoFacturaManual
         $html .= '</tbody>
         <tfoot>
             <tr style="background-color: #e8f5e8; font-weight: bold;">
-                <td colspan="5" style="text-align: right;">TOTAL GENERAL:</td>
+                <td colspan="6" style="text-align: right;">TOTAL GENERAL:</td>
                 <td class="amount">$ ' . number_format($procesos->sum(fn($p) => $p->cursos()->sum('valor_recibir')), 2, ',', '.') . '</td>
                 <td class="amount">$ ' . number_format($procesos->sum(fn($p) => $p->renovaciones()->sum('valor_total')), 2, ',', '.') . '</td>
                 <td class="amount">$ ' . number_format($procesos->sum(fn($p) => $p->licencias()->sum('valor_total_licencia')), 2, ',', '.') . '</td>

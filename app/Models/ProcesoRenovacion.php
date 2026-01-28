@@ -11,11 +11,14 @@ class ProcesoRenovacion extends Model
 
     protected $fillable = [
         'proceso_id',
-        'renovacion_id', // Cambiar de 'renovaciones_seleccionadas' a 'renovacion_id'
+        'renovacion_id',
+        'nombre',
         'cedula',
         'incluye_examen',
         'incluye_lamina',
         'valor_total',
+        'estado',
+        'descripcion_general',
     ];
 
     protected $casts = [

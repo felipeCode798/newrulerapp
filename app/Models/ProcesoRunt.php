@@ -16,6 +16,8 @@ class ProcesoRunt extends Model
         'pago',
         'honorarios',
         'valor_recibir',
+        'estado',
+        'descripcion_general',
     ];
 
     protected $casts = [

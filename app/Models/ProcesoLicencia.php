@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; 
 
 class ProcesoLicencia extends Model
 {
@@ -13,6 +14,7 @@ class ProcesoLicencia extends Model
         'categorias_seleccionadas',
         'escuela_id',
         'enrolamiento',
+        'valor_enrolamiento',
         'pin_escuela_id',
         'valor_carta_escuela',
         'examen_medico',
@@ -22,6 +24,8 @@ class ProcesoLicencia extends Model
         'sin_curso',
         'valor_sin_curso',
         'valor_total_licencia',
+        'estado',
+        'descripcion_general',
     ];
 
     protected $casts = [
@@ -46,5 +50,15 @@ class ProcesoLicencia extends Model
     public function pinEscuela(): BelongsTo
     {
         return $this->belongsTo(PinEscuela::class);
+    }
+
+    public function categorias(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            CategoriaLicencia::class,
+            'proceso_licencia_categorias', // Nombre de la tabla pivote
+            'proceso_licencia_id',
+            'categoria_licencia_id'
+        );
     }
 }

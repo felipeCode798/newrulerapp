@@ -18,6 +18,8 @@ class ProcesoTraspaso extends Model
         'honorarios',
         'comision',
         'total_recibir',
+        'estado',
+        'descripcion_general',
     ];
 
     protected $casts = [

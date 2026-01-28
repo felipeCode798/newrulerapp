@@ -92,14 +92,19 @@ class CreateProceso extends CreateRecord
                     
                     $proceso = $this->crearProcesoBase($data, 'curso', 'Curso: ' . $nombreCurso);
                     
-                    // Crear el curso relacionado
-                    ProcesoCurso::create([
+                    // Crear el curso relacionado con nuevos campos
+                    \App\Models\ProcesoCurso::create([
                         'proceso_id' => $proceso->id,
                         'curso_id' => $cursoData['curso_id'],
+                        'nombre' => $cursoData['nombre'] ?? '',
+                        'numero_comparendo' => $cursoData['numero_comparendo'] ?? null,
+                        'cia_id' => $cursoData['cia_id'] ?? null,
                         'cedula' => $cursoData['cedula'] ?? $this->obtenerCedulaBase($data),
                         'porcentaje' => $cursoData['porcentaje'] ?? '50',
                         'valor_transito' => $cursoData['valor_transito'] ?? 0,
                         'valor_recibir' => $cursoData['valor_recibir'] ?? 0,
+                        'estado' => $cursoData['estado'] ?? 'pendiente',
+                        'descripcion_general' => $cursoData['descripcion_general'] ?? null,
                     ]);
                     
                     $proceso->calcularTotalGeneral();
@@ -117,14 +122,17 @@ class CreateProceso extends CreateRecord
                     
                     $proceso = $this->crearProcesoBase($data, 'renovacion', 'Renovación: ' . $nombreRenovacion);
                     
-                    // Crear la renovación relacionada
-                    ProcesoRenovacion::create([
+                    // Crear la renovación relacionada con nuevos campos
+                    \App\Models\ProcesoRenovacion::create([
                         'proceso_id' => $proceso->id,
                         'renovacion_id' => $renovacionData['renovacion_id'],
+                        'nombre' => $renovacionData['nombre'] ?? '',
                         'cedula' => $renovacionData['cedula'] ?? $this->obtenerCedulaBase($data),
                         'incluye_examen' => $renovacionData['incluye_examen'] ?? true,
                         'incluye_lamina' => $renovacionData['incluye_lamina'] ?? true,
                         'valor_total' => $renovacionData['valor_total'] ?? 0,
+                        'estado' => $renovacionData['estado'] ?? 'pendiente',
+                        'descripcion_general' => $renovacionData['descripcion_general'] ?? null,
                     ]);
                     
                     $proceso->calcularTotalGeneral();
@@ -147,13 +155,14 @@ class CreateProceso extends CreateRecord
                     
                     $proceso = $this->crearProcesoBase($data, 'licencia', $descripcion);
                     
-                    // Crear la licencia relacionada
-                    ProcesoLicencia::create([
+                    // Crear la licencia relacionada con nuevos campos
+                    \App\Models\ProcesoLicencia::create([
                         'proceso_id' => $proceso->id,
                         'cedula' => $licenciaData['cedula'] ?? $this->obtenerCedulaBase($data),
                         'categorias_seleccionadas' => $licenciaData['categorias_seleccionadas'] ?? [],
                         'escuela_id' => $licenciaData['escuela_id'] ?? null,
                         'enrolamiento' => $licenciaData['enrolamiento'] ?? 'guardado',
+                        'valor_enrolamiento' => $licenciaData['valor_enrolamiento'] ?? 0,
                         'pin_escuela_id' => $licenciaData['pin_escuela_id'] ?? null,
                         'valor_carta_escuela' => $licenciaData['valor_carta_escuela'] ?? 0,
                         'examen_medico' => $licenciaData['examen_medico'] ?? 'no_aplica',
@@ -163,6 +172,8 @@ class CreateProceso extends CreateRecord
                         'sin_curso' => $licenciaData['sin_curso'] ?? 'no_aplica',
                         'valor_sin_curso' => $licenciaData['valor_sin_curso'] ?? 0,
                         'valor_total_licencia' => $licenciaData['valor_total_licencia'] ?? 0,
+                        'estado' => $licenciaData['estado'] ?? 'pendiente',
+                        'descripcion_general' => $licenciaData['descripcion_general'] ?? null,
                     ]);
                     
                     $proceso->calcularTotalGeneral();
@@ -171,14 +182,50 @@ class CreateProceso extends CreateRecord
             }
         }
         
-        // 4. Crear procesos para traspasos
+        // 4. Crear procesos para controversias
+        if (isset($data['controversias']) && is_array($data['controversias'])) {
+            foreach ($data['controversias'] as $controversiaData) {
+                if (!empty($controversiaData['categoria_controversia_id'])) {
+                    $categoria = \App\Models\CategoriaControversia::find($controversiaData['categoria_controversia_id']);
+                    $nombreCategoria = $categoria ? $categoria->nombre : 'Controversia';
+                    
+                    $proceso = $this->crearProcesoBase($data, 'controversia', 'Controversia: ' . $nombreCategoria);
+                    
+                    // Crear la controversia relacionada con nuevos campos
+                    \App\Models\ProcesoControversia::create([
+                        'proceso_id' => $proceso->id,
+                        'categoria_controversia_id' => $controversiaData['categoria_controversia_id'],
+                        'nombre' => $controversiaData['nombre'] ?? '',
+                        'comparendo' => $controversiaData['comparendo'] ?? null,
+                        'cia_id' => $controversiaData['cia_id'] ?? null,
+                        'precio_cia' => $controversiaData['precio_cia'] ?? 0,
+                        'cedula' => $controversiaData['cedula'] ?? $this->obtenerCedulaBase($data),
+                        'celular' => $controversiaData['celular'] ?? null,
+                        'debe' => $controversiaData['debe'] ?? false,
+                        'valor_controversia' => $controversiaData['valor_controversia'] ?? 0,
+                        'fecha_hora_cita' => $controversiaData['fecha_hora_cita'],
+                        'codigo_controversia' => $controversiaData['codigo_controversia'],
+                        'venta_controversia' => $controversiaData['venta_controversia'] ?? 0,
+                        'documento_identidad' => $controversiaData['documento_identidad'] ?? null,
+                        'poder' => $controversiaData['poder'] ?? null,
+                        'estado' => $controversiaData['estado'] ?? 'pendiente',
+                        'descripcion_general' => $controversiaData['descripcion_general'] ?? null,
+                    ]);
+                    
+                    $proceso->calcularTotalGeneral();
+                    $procesosCreados[] = $proceso;
+                }
+            }
+        }
+        
+        // 5. Crear procesos para traspasos
         if (isset($data['traspasos']) && is_array($data['traspasos'])) {
             foreach ($data['traspasos'] as $traspasoData) {
                 if (!empty($traspasoData['nombre_propietario'])) {
                     $proceso = $this->crearProcesoBase($data, 'traspaso', 'Traspaso: ' . $traspasoData['nombre_propietario']);
                     
                     // Crear el traspaso relacionado
-                    ProcesoTraspaso::create([
+                    \App\Models\ProcesoTraspaso::create([
                         'proceso_id' => $proceso->id,
                         'cedula' => $traspasoData['cedula'] ?? $this->obtenerCedulaBase($data),
                         'nombre_propietario' => $traspasoData['nombre_propietario'],
@@ -197,14 +244,14 @@ class CreateProceso extends CreateRecord
             }
         }
         
-        // 5. Crear procesos para RUNT
+        // 6. Crear procesos para RUNT
         if (isset($data['runts']) && is_array($data['runts'])) {
             foreach ($data['runts'] as $runtData) {
                 if (!empty($runtData['nombre'])) {
                     $proceso = $this->crearProcesoBase($data, 'runt', 'RUNT: ' . $runtData['nombre']);
                     
                     // Crear el RUNT relacionado
-                    ProcesoRunt::create([
+                    \App\Models\ProcesoRunt::create([
                         'proceso_id' => $proceso->id,
                         'nombre' => $runtData['nombre'],
                         'cedula' => $runtData['cedula'] ?? $this->obtenerCedulaBase($data),
@@ -221,39 +268,11 @@ class CreateProceso extends CreateRecord
             }
         }
         
-        // 6. Crear procesos para controversias
-        if (isset($data['controversias']) && is_array($data['controversias'])) {
-            foreach ($data['controversias'] as $controversiaData) {
-                if (!empty($controversiaData['categoria_controversia_id'])) {
-                    $categoria = \App\Models\CategoriaControversia::find($controversiaData['categoria_controversia_id']);
-                    $nombreCategoria = $categoria ? $categoria->nombre : 'Controversia';
-                    
-                    $proceso = $this->crearProcesoBase($data, 'controversia', 'Controversia: ' . $nombreCategoria);
-                    
-                    // Crear la controversia relacionada
-                    ProcesoControversia::create([
-                        'proceso_id' => $proceso->id,
-                        'categoria_controversia_id' => $controversiaData['categoria_controversia_id'],
-                        'cedula' => $controversiaData['cedula'] ?? $this->obtenerCedulaBase($data),
-                        'valor_controversia' => $controversiaData['valor_controversia'] ?? 0,
-                        'fecha_hora_cita' => $controversiaData['fecha_hora_cita'],
-                        'codigo_controversia' => $controversiaData['codigo_controversia'],
-                        'venta_controversia' => $controversiaData['venta_controversia'] ?? 0,
-                        'documento_identidad' => $controversiaData['documento_identidad'] ?? null,
-                        'poder' => $controversiaData['poder'] ?? null,
-                    ]);
-                    
-                    $proceso->calcularTotalGeneral();
-                    $procesosCreados[] = $proceso;
-                }
-            }
-        }
-        
         // 7. Estados de cuenta (se asignan al primer proceso creado)
         if (isset($data['estados_cuenta']) && is_array($data['estados_cuenta']) && count($procesosCreados) > 0) {
             $primerProceso = $procesosCreados[0];
             foreach ($data['estados_cuenta'] as $archivo) {
-                EstadoCuenta::create([
+                \App\Models\EstadoCuenta::create([
                     'proceso_id' => $primerProceso->id,
                     'archivo' => $archivo,
                 ]);

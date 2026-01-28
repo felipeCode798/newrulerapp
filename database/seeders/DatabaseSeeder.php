@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
             CategoriaControversiaSeeder::class,
             EscuelaSeeder::class,
             CategoriaSeeder::class,
+            CiaSeeder::class,
+            AbogadoSeeder::class,
         ]);
     }
 }
