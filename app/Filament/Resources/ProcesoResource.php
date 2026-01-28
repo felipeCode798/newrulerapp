@@ -1361,6 +1361,67 @@ class ProcesoResource extends Resource
                         ->modalHeading('Duplicar Proceso')
                         ->modalDescription('¿Estás seguro de que quieres duplicar este proceso?')
                         ->modalSubmitActionLabel('Sí, duplicar'),
+                        Tables\Actions\Action::make('abrir_whatsapp')
+                        ->label('Enviar por WhatsApp')
+                        ->icon('heroicon-o-chat-bubble-left-right')
+                        ->color('success')
+                        ->visible(fn ($record) => $record->tipo_servicio === 'curso')
+                        ->form([
+                            Forms\Components\Textarea::make('mensaje_personalizado')
+                                ->label('Mensaje adicional (opcional)')
+                                ->rows(2)
+                                ->placeholder('Ej: Buenas tardes, curso listo...'),
+                            
+                            Forms\Components\Toggle::make('marcar_como_enviado')
+                                ->label('Marcar como "Enviado"')
+                                ->default(true),
+                        ])
+                        ->action(function (Proceso $record, array $data) {
+                            $cursosData = [];
+                            
+                            foreach ($record->cursos as $curso) {
+                                $nombre = $curso->nombre ?? ($record->tipo_usuario === 'cliente' 
+                                    ? $record->cliente->nombre 
+                                    : ($record->tramitador->nombre ?? 'N/A'));
+                                
+                                $cedula = $curso->cedula ?? ($record->tipo_usuario === 'cliente' 
+                                    ? $record->cliente->cedula 
+                                    : ($record->tramitador->cedula ?? 'N/A'));
+                                
+                                $cursosData[] = [
+                                    'nombre' => $nombre,
+                                    'cedula' => $cedula,
+                                    'numero_comparendo' => $curso->numero_comparendo ?? 'N/A',
+                                    'porcentaje' => $curso->porcentaje ?? '50',
+                                    'curso_id' => $curso->id,
+                                ];
+                            }
+                            
+                            // Usar el método estático
+                            $mensajeFormateado = self::formatearMensajeWhatsApp(
+                                $cursosData, 
+                                $data['mensaje_personalizado'] ?? ''
+                            );
+                            
+                            // Codificar para URL
+                            $mensajeCodificado = urlencode($mensajeFormateado);
+                            
+                            // Marcar como enviado si se seleccionó
+                            if ($data['marcar_como_enviado']) {
+                                foreach ($record->cursos as $curso) {
+                                    $curso->update(['estado' => 'enviado']);
+                                }
+                                
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Cursos marcados como enviados')
+                                    ->success()
+                                    ->send();
+                            }
+                            
+                            // Abrir WhatsApp Web
+                            return redirect()->away("https://web.whatsapp.com/send?text={$mensajeCodificado}");
+                        })
+                        ->tooltip('Abrir WhatsApp con los cursos'),
                 ])
                 ->label('Acciones')
                 ->icon('heroicon-m-ellipsis-vertical')
@@ -1384,11 +1445,221 @@ class ProcesoResource extends Resource
                         return (new \App\Exports\ProcesoFacturaManual($records))
                             ->download('procesos_' . date('Y-m-d_H-i-s'));
                     }),
+                    Tables\Actions\BulkAction::make('abrir_whatsapp_cursos')
+                    ->label('Abrir WhatsApp con Cursos')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->color('success')
+                    ->modalHeading('Preparar mensaje para WhatsApp')
+                    ->modalSubmitActionLabel('Abrir WhatsApp')
+                    ->modalCancelActionLabel('Cancelar')
+                    ->form([
+                        Forms\Components\Textarea::make('mensaje_personalizado')
+                            ->label('Mensaje adicional (opcional)')
+                            ->rows(2)
+                            ->placeholder('Ej: Buenas tardes, adjunto lista de cursos para hoy...')
+                            ->helperText('Se agregará antes de la tabla'),
+                        
+                        Forms\Components\Toggle::make('incluir_encabezado')
+                            ->label('Incluir tabla con bordes')
+                            ->default(true)
+                            ->helperText('Tabla con formato especial para WhatsApp'),
+                        
+                        Forms\Components\Toggle::make('marcar_como_enviado')
+                            ->label('Marcar cursos como "Enviado"')
+                            ->default(true)
+                            ->helperText('Cambiará el estado de los cursos después de abrir WhatsApp'),
+                    ])
+                    ->action(function (Collection $records, array $data) {
+                        // Filtrar solo procesos de tipo curso
+                        $procesosCursos = $records->filter(function ($proceso) {
+                            return $proceso->tipo_servicio === 'curso';
+                        });
+                        
+                        if ($procesosCursos->isEmpty()) {
+                            throw new \Exception('No hay procesos de curso seleccionados.');
+                        }
+                        
+                        // Obtener todos los cursos
+                        $cursosData = [];
+                        foreach ($procesosCursos as $proceso) {
+                            foreach ($proceso->cursos as $curso) {
+                                // Obtener nombre
+                                $nombre = $curso->nombre ?? ($proceso->tipo_usuario === 'cliente' 
+                                    ? $proceso->cliente->nombre 
+                                    : ($proceso->tramitador->nombre ?? 'N/A'));
+                                
+                                // Obtener cédula
+                                $cedula = $curso->cedula ?? ($proceso->tipo_usuario === 'cliente' 
+                                    ? $proceso->cliente->cedula 
+                                    : ($proceso->tramitador->cedula ?? 'N/A'));
+                                
+                                $cursosData[] = [
+                                    'nombre' => $nombre,
+                                    'cedula' => $cedula,
+                                    'numero_comparendo' => $curso->numero_comparendo ?? 'N/A',
+                                    'porcentaje' => $curso->porcentaje ?? '50',
+                                    'proceso_id' => $proceso->id,
+                                    'curso_id' => $curso->id,
+                                ];
+                            }
+                        }
+                        
+                        if (empty($cursosData)) {
+                            throw new \Exception('No hay cursos para enviar.');
+                        }
+                        
+                        // Formatear mensaje usando el método estático
+                        $mensajeFormateado = self::formatearMensajeWhatsApp(
+                            $cursosData, 
+                            $data['mensaje_personalizado'] ?? '',
+                            $data['incluir_encabezado'] ?? true
+                        );
+                        
+                        // Codificar el mensaje para URL
+                        $mensajeCodificado = urlencode($mensajeFormateado);
+                        
+                        // Crear URL de WhatsApp
+                        $urlWhatsApp = "https://web.whatsapp.com/send?text={$mensajeCodificado}";
+                        
+                        // Si se marca como enviado, guardar en sesión para procesar después
+                        if ($data['marcar_como_enviado'] ?? true) {
+                            \App\Models\ProcesoCurso::whereIn('id', array_column($cursosData, 'curso_id'))
+                                ->update(['estado' => 'enviado']);
+                            
+                            \Filament\Notifications\Notification::make()
+                                ->title('Cursos marcados como enviados')
+                                ->body(count($cursosData) . ' cursos han sido marcados como "Enviado"')
+                                ->success()
+                                ->send();
+                        }
+                        // Redirigir a WhatsApp Web
+                        return redirect()->away($urlWhatsApp);
+                    })
+                    ->modalDescription('Se abrirá WhatsApp Web con el mensaje listo para enviar. Solo selecciona el grupo y envía.')
+                    ->deselectRecordsAfterCompletion(),
             ])
             ->defaultSort('created_at', 'desc')
             ->striped()
             ->paginated([10, 25, 50, 100]);
     }
+
+    protected function afterSave(): void
+    {
+        // Marcar cursos como enviados si se abrió WhatsApp
+        if (session()->has('cursos_a_marcar')) {
+            $cursoIds = session('cursos_a_marcar');
+            
+            \App\Models\ProcesoCurso::whereIn('id', $cursoIds)
+                ->update(['estado' => 'enviado']);
+                
+            session()->forget('cursos_a_marcar');
+            
+            \Filament\Notifications\Notification::make()
+                ->title('Cursos marcados como enviados')
+                ->success()
+                ->send();
+        }
+    }
+
+    private static function formatearMensajeWhatsApp(
+        array $cursosData, 
+        string $mensajePersonalizado = '', 
+        bool $incluirEncabezado = true
+    ): string {
+        $mensaje = '';
+        
+        // Mensaje personalizado
+        if (!empty($mensajePersonalizado)) {
+            $mensaje .= trim($mensajePersonalizado) . "\n\n";
+        }
+        
+        // Agrupar por porcentaje
+        $cursos50 = array_filter($cursosData, fn($c) => $c['porcentaje'] == '50');
+        $cursos20 = array_filter($cursosData, fn($c) => $c['porcentaje'] == '20');
+        
+        if (!empty($cursos50)) {
+            $mensaje .= "📋 *CURSOS 50%*\n";
+            $mensaje .= self::generarTablaWhatsApp($cursos50, $incluirEncabezado);
+            $mensaje .= "\n";
+        }
+        
+        if (!empty($cursos20)) {
+            if (!empty($cursos50)) {
+                $mensaje .= "\n";
+            }
+            $mensaje .= "📋 *CURSOS 20%*\n";
+            $mensaje .= self::generarTablaWhatsApp($cursos20, $incluirEncabezado);
+        }
+        
+        // Total
+        $totalCursos = count($cursosData);
+        $mensaje .= "\n" . str_repeat('═', 40) . "\n";
+        $mensaje .= "📊 *TOTAL: {$totalCursos} cursos*\n";
+        
+        // Fecha actual
+        $mensaje .= "📅 " . now()->format('d/m/Y H:i') . "\n";
+        
+        return trim($mensaje);
+    }
+    
+    private static function generarTablaWhatsApp(array $cursosData, bool $incluirEncabezado): string
+    {
+        $tabla = '';
+        
+        if ($incluirEncabezado) {
+            $tabla .= "┌───────────────────────────────────────────────────────────┐\n";
+            $tabla .= "│ Nombre             - Cédula     - # Comparendo - Descuento│\n";
+            $tabla .= "├───────────────────────────────────────────────────────────┤\n";
+        }
+        
+        foreach ($cursosData as $curso) {
+            $nombre = self::mb_str_pad(mb_substr($curso['nombre'], 0, 18), 18);
+            $cedula = str_pad(substr($curso['cedula'], 0, 10), 10);
+            $comparendo = str_pad(substr($curso['numero_comparendo'], 0, 12), 12);
+            $porcentaje = str_pad($curso['porcentaje'] . '%', 8);
+            
+            $tabla .= "│ * {$nombre} - {$cedula} - {$comparendo} - {$porcentaje} │\n";
+        }
+        
+        if ($incluirEncabezado) {
+            $tabla .= "└───────────────────────────────────────────────────────────┘\n";
+        }
+        
+        return $tabla;
+    }
+
+    private static function mb_str_pad($string, $length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT, $encoding = null)
+    {
+        if ($encoding === null) {
+            $encoding = mb_internal_encoding();
+        }
+        
+        $pad_length = $length - mb_strlen($string, $encoding);
+        
+        if ($pad_length <= 0) {
+            return $string;
+        }
+        
+        switch ($pad_type) {
+            case STR_PAD_LEFT:
+                $left_pad = str_repeat($pad_string, ceil($pad_length / mb_strlen($pad_string, $encoding)));
+                return mb_substr($left_pad, 0, $pad_length, $encoding) . $string;
+            case STR_PAD_RIGHT:
+                $right_pad = str_repeat($pad_string, ceil($pad_length / mb_strlen($pad_string, $encoding)));
+                return $string . mb_substr($right_pad, 0, $pad_length, $encoding);
+            case STR_PAD_BOTH:
+                $pad_length_left = floor($pad_length / 2);
+                $pad_length_right = $pad_length - $pad_length_left;
+                $left_pad = str_repeat($pad_string, ceil($pad_length_left / mb_strlen($pad_string, $encoding)));
+                $right_pad = str_repeat($pad_string, ceil($pad_length_right / mb_strlen($pad_string, $encoding)));
+                return mb_substr($left_pad, 0, $pad_length_left, $encoding) . 
+                    $string . 
+                    mb_substr($right_pad, 0, $pad_length_right, $encoding);
+        }
+        
+        return $string;
+    }
+    
 
 
     public static function getRelations(): array
