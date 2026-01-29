@@ -1,3 +1,4 @@
+// database/migrations/xxxx_create_pagos_table.php
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -10,13 +11,17 @@ return new class extends Migration
     {
         Schema::create('pagos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('proceso_id')->constrained()->cascadeOnDelete();
-            $table->decimal('valor', 10, 2);
-            $table->enum('metodo', ['efectivo', 'transferencia', 'tarjeta', 'cheque', 'otro']);
+            $table->foreignId('proceso_id')->constrained()->onDelete('cascade');
+            $table->decimal('valor', 12, 2);
+            $table->string('metodo')->default('efectivo');
             $table->string('referencia')->nullable();
             $table->date('fecha_pago');
             $table->text('observaciones')->nullable();
+            $table->foreignId('registrado_por')->constrained('users')->onDelete('cascade');
+            $table->string('estado')->default('pendiente');
             $table->timestamps();
+            
+            $table->index(['proceso_id', 'fecha_pago']);
         });
     }
 

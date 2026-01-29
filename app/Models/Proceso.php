@@ -72,6 +72,11 @@ class Proceso extends Model
         return $this->hasMany(EstadoCuenta::class);
     }
 
+    public function pagos(): HasMany
+    {
+        return $this->hasMany(Pago::class);
+    }
+
     public function getCedulaCompletaAttribute(): string
     {
         if ($this->tipo_usuario === 'cliente' && $this->cliente) {
@@ -241,5 +246,40 @@ class Proceso extends Model
         
         $this->total_general = $total;
         $this->save();
+    }
+
+    public function getEstadoActualAttribute(): string
+    {
+        // Verificar en cursos
+        if ($this->cursos()->count() > 0) {
+            return $this->cursos->first()->estado ?? 'pendiente';
+        }
+        
+        // Verificar en renovaciones
+        if ($this->renovaciones()->count() > 0) {
+            return $this->renovaciones->first()->estado ?? 'pendiente';
+        }
+        
+        // Verificar en licencias
+        if ($this->licencias()->count() > 0) {
+            return $this->licencias->first()->estado ?? 'pendiente';
+        }
+        
+        // Verificar en controversias
+        if ($this->controversias()->count() > 0) {
+            return $this->controversias->first()->estado ?? 'pendiente';
+        }
+        
+        // Verificar en traspasos
+        if ($this->traspasos()->count() > 0) {
+            return $this->traspasos->first()->estado ?? 'pendiente';
+        }
+        
+        // Verificar en runts
+        if ($this->runts()->count() > 0) {
+            return $this->runts->first()->estado ?? 'pendiente';
+        }
+        
+        return 'pendiente';
     }
 }

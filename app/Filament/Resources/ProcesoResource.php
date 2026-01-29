@@ -35,8 +35,7 @@ class ProcesoResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    public static function form(Form $form): Form
-    {
+    public static function form(Form $form): Form {
         return $form
             ->schema([
                 Forms\Components\Section::make('Selección de Usuario')
@@ -828,8 +827,7 @@ class ProcesoResource extends Resource
     }
 
     // Métodos auxiliares para cálculos
-    protected static function calcularValoresCurso(Set $set, Get $get, $porcentaje)
-    {
+    protected static function calcularValoresCurso(Set $set, Get $get, $porcentaje) {
         $cursoId = $get('curso_id');
         $tipoUsuario = $get('../../tipo_usuario');
     
@@ -877,8 +875,7 @@ class ProcesoResource extends Resource
         }
     }
     
-    protected static function calcularValoresRenovacion(Set $set, Get $get, $renovacionId, $incluyeExamen, $incluyeLamina)
-    {
+    protected static function calcularValoresRenovacion(Set $set, Get $get, $renovacionId, $incluyeExamen, $incluyeLamina) {
         if (!$renovacionId) {
             $set('valor_total', 0);
             return;
@@ -932,8 +929,7 @@ class ProcesoResource extends Resource
         $set('valor_total', $total);
     }
     
-    protected static function calcularValoresLicencia($set, $escuelaId)
-    {
+    protected static function calcularValoresLicencia($set, $escuelaId) {
         if (!$escuelaId) {
             return;
         }
@@ -945,8 +941,7 @@ class ProcesoResource extends Resource
         self::recalcularTotalLicencia($set, $escuelaId);
     }
 
-    protected static function calcularValorExamenMedico(Set $set, Get $get, $estado)
-    {
+    protected static function calcularValorExamenMedico(Set $set, Get $get, $estado) {
         if ($estado === 'no_aplica') {
             $set('valor_examen_medico', 0);
         } else {
@@ -965,8 +960,7 @@ class ProcesoResource extends Resource
         self::recalcularTotalLicencia($set, $get);
     }
 
-    protected static function calcularValorImpresion(Set $set, Get $get, $estado)
-    {
+    protected static function calcularValorImpresion(Set $set, Get $get, $estado) {
         if ($estado === 'no_aplica') {
             $set('valor_impresion', 0);
         } else {
@@ -985,8 +979,7 @@ class ProcesoResource extends Resource
         self::recalcularTotalLicencia($set, $get);
     }
 
-    protected static function calcularValorSinCurso(Set $set, Get $get, $estado)
-    {
+    protected static function calcularValorSinCurso(Set $set, Get $get, $estado) {
         if ($estado === 'no_aplica') {
             $set('valor_sin_curso', 0);
         } else {
@@ -1005,8 +998,7 @@ class ProcesoResource extends Resource
         self::recalcularTotalLicencia($set, $get);
     }
 
-    protected static function recalcularTotalLicencia(Set $set, Get $get)
-    {
+    protected static function recalcularTotalLicencia(Set $set, Get $get) {
         $valorCarta = $get('valor_carta_escuela') ?? 0;
         $valorExamen = $get('valor_examen_medico') ?? 0;
         $valorImpresion = $get('valor_impresion') ?? 0;
@@ -1029,8 +1021,7 @@ class ProcesoResource extends Resource
         $set('valor_total_licencia', $total);
     }
 
-    protected static function calcularTotalTraspaso(Set $set, Get $get)
-    {
+    protected static function calcularTotalTraspaso(Set $set, Get $get) {
         $derecho = $get('derecho_traspaso') ?? 0;
         $porcentaje = $get('porcentaje') ?? 0;
         $honorarios = $get('honorarios') ?? 0;
@@ -1039,8 +1030,7 @@ class ProcesoResource extends Resource
         $set('total_recibir', $total);
     }
 
-    protected static function calcularTotalRunt(Set $set, Get $get)
-    {
+    protected static function calcularTotalRunt(Set $set, Get $get) {
         $comision = $get('comision') ?? 0;
         $pago = $get('pago') ?? 0;
         $honorarios = $get('honorarios') ?? 0;
@@ -1048,8 +1038,7 @@ class ProcesoResource extends Resource
         $set('valor_recibir', $total);
     }
 
-    protected static function calcularValorControversia(Set $set, Get $get, $categoriaId)
-    {
+    protected static function calcularValorControversia(Set $set, Get $get, $categoriaId) {
         if (!$categoriaId) {
         return;
         }
@@ -1073,7 +1062,6 @@ class ProcesoResource extends Resource
             }
         }
     }
-
 
     public static function table(Table $table): Table
     {
@@ -1142,13 +1130,83 @@ class ProcesoResource extends Resource
                         'finalizado' => 'success',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state))),
-
+                    ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state)))
+                    ->searchable()
+                    ->sortable()
+                    ->action(
+                        Tables\Actions\Action::make('cambiarEstado')
+                            ->form([
+                                Forms\Components\Select::make('estado')
+                                    ->label('Nuevo Estado')
+                                    ->options([
+                                        'pendiente' => 'Pendiente',
+                                        'enviado' => 'Enviado',
+                                        'en_proceso' => 'En Proceso',
+                                        'finalizado' => 'Finalizado',
+                                    ])
+                                    ->required(),
+                            ])
+                            ->action(function ($record, array $data) {
+                                // Actualizar todos los servicios
+                                $record->cursos()->update(['estado' => $data['estado']]);
+                                $record->renovaciones()->update(['estado' => $data['estado']]);
+                                $record->licencias()->update(['estado' => $data['estado']]);
+                                $record->traspasos()->update(['estado' => $data['estado']]);
+                                $record->runts()->update(['estado' => $data['estado']]);
+                                $record->controversias()->update(['estado' => $data['estado']]);
+                                
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Estado actualizado')
+                                    ->body("Estado cambiado a: " . ucfirst(str_replace('_', ' ', $data['estado'])))
+                                    ->success()
+                                    ->send();
+                            })
+                    ),
+                    
                 Tables\Columns\TextColumn::make('total_general')
                     ->label('Total')
                     ->money('COP')
                     ->sortable()
                     ->color('success'),
+
+                Tables\Columns\TextColumn::make('estado_pago')
+                    ->label('Estado Pago')
+                    ->getStateUsing(function ($record) {
+                        $pagos = \App\Models\Pago::calcularSaldoProceso($record);
+                        
+                        if ($record->total_general <= 0) {
+                            return 'sin_cargo';
+                        }
+                        
+                        if ($pagos['completamente_pagado']) {
+                            return 'pagado';
+                        } elseif ($pagos['total_pagado'] > 0) {
+                            return 'parcial';
+                        } else {
+                            return 'pendiente';
+                        }
+                    })
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        'pagado' => 'success',
+                        'parcial' => 'warning',
+                        'pendiente' => 'danger',
+                        'sin_cargo' => 'gray',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state) => match($state) {
+                        'pagado' => 'Pagado',
+                        'parcial' => 'Pago Parcial',
+                        'pendiente' => 'Pendiente',
+                        'sin_cargo' => 'Sin Cargo',
+                        default => $state,
+                    })
+                    ->tooltip(function ($record) {
+                        $pagos = \App\Models\Pago::calcularSaldoProceso($record);
+                        return "Total: $" . number_format($record->total_general, 2) . 
+                               "\nPagado: $" . number_format($pagos['total_pagado'], 2) . 
+                               "\nSaldo: $" . number_format($pagos['saldo_pendiente'], 2);
+                    }),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Última Actualización')
@@ -1279,89 +1337,171 @@ class ProcesoResource extends Resource
                         ->color('warning'),
                     Tables\Actions\DeleteAction::make()
                         ->color('danger'),
-                    Tables\Actions\Action::make('duplicar')
-                        ->label('Duplicar')
-                        ->icon('heroicon-o-document-duplicate')
-                        ->color('gray')
-                        ->action(function (Proceso $record) {
-                            // Duplicar el proceso
-                            $nuevoProceso = $record->replicate();
-                            $nuevoProceso->created_at = now();
-                            $nuevoProceso->save();
+                    Tables\Actions\Action::make('enviar_factura_individual')
+                        ->label('Enviar Factura')
+                        ->icon('heroicon-o-paper-airplane')
+                        ->color('primary')
+                        ->form(function (Proceso $record) {
+                            // Verificar si tiene email
+                            $tieneEmail = $record->tipo_usuario === 'cliente' && 
+                                         !empty($record->cliente->email) &&
+                                         filter_var($record->cliente->email, FILTER_VALIDATE_EMAIL);
                             
-                            // Duplicar los cursos si existen
-                            if ($record->cursos()->exists()) {
-                                foreach ($record->cursos as $curso) {
-                                    $nuevoCurso = $curso->replicate();
-                                    $nuevoCurso->proceso_id = $nuevoProceso->id;
-                                    $nuevoCurso->save();
-                                }
+                            // Verificar si tiene teléfono
+                            $tieneTelefono = $record->cliente && !empty($record->cliente->telefono);
+                            
+                            // Crear opciones dinámicamente
+                            $opciones = ['descargar' => '📥 Descargar localmente'];
+                            
+                            if ($tieneEmail) {
+                                $opciones['email'] = '📧 Enviar por Email';
+                            } else {
+                                $opciones['email'] = '📧 Enviar por Email (no disponible)';
                             }
                             
-                            // Duplicar las renovaciones si existen
-                            if ($record->renovaciones()->exists()) {
-                                foreach ($record->renovaciones as $renovacion) {
-                                    $nuevaRenovacion = $renovacion->replicate();
-                                    $nuevaRenovacion->proceso_id = $nuevoProceso->id;
-                                    $nuevaRenovacion->save();
-                                }
+                            if ($tieneTelefono) {
+                                $opciones['whatsapp'] = '💬 Enviar por WhatsApp';
+                            } else {
+                                $opciones['whatsapp'] = '💬 Enviar por WhatsApp (no disponible)';
                             }
                             
-                            // Duplicar licencias
-                            if ($record->licencias()->exists()) {
-                                foreach ($record->licencias as $licencia) {
-                                    $nuevaLicencia = $licencia->replicate();
-                                    $nuevaLicencia->proceso_id = $nuevoProceso->id;
-                                    $nuevaLicencia->save();
-                                }
+                            $formFields = [
+                                Forms\Components\Select::make('metodo')
+                                    ->label('Método de envío')
+                                    ->options($opciones)
+                                    ->required()
+                                    ->live()
+                                    ->default('descargar'),
+                            ];
+                            
+                            if ($tieneEmail) {
+                                $formFields[] = Forms\Components\TextInput::make('email')
+                                    ->label('Email destino')
+                                    ->email()
+                                    ->default($record->cliente->email)
+                                    ->required(fn ($get) => $get('metodo') === 'email')
+                                    ->visible(fn ($get) => $get('metodo') === 'email');
                             }
                             
-                            // Duplicar traspasos
-                            if ($record->traspasos()->exists()) {
-                                foreach ($record->traspasos as $traspaso) {
-                                    $nuevoTraspaso = $traspaso->replicate();
-                                    $nuevoTraspaso->proceso_id = $nuevoProceso->id;
-                                    $nuevoTraspaso->save();
-                                }
+                            if ($tieneTelefono) {
+                                $formFields[] = Forms\Components\TextInput::make('telefono')
+                                    ->label('Número WhatsApp')
+                                    ->default($record->cliente->telefono)
+                                    ->required(fn ($get) => $get('metodo') === 'whatsapp')
+                                    ->visible(fn ($get) => $get('metodo') === 'whatsapp');
                             }
                             
-                            // Duplicar RUNTS
-                            if ($record->runts()->exists()) {
-                                foreach ($record->runts as $runt) {
-                                    $nuevoRunt = $runt->replicate();
-                                    $nuevoRunt->proceso_id = $nuevoProceso->id;
-                                    $nuevoRunt->save();
-                                }
-                            }
+                            $formFields[] = Forms\Components\Textarea::make('mensaje')
+                                ->label('Mensaje personalizado')
+                                ->rows(3)
+                                ->default(fn () => "Hola,\n\nAdjunto factura del proceso #{$record->id}.\n\nTotal: $" . 
+                                    number_format($record->total_general, 2) . 
+                                    "\n\nSaludos,\nSistema Jurídico de Tránsito");
                             
-                            // Duplicar controversias
-                            if ($record->controversias()->exists()) {
-                                foreach ($record->controversias as $controversia) {
-                                    $nuevaControversia = $controversia->replicate();
-                                    $nuevaControversia->proceso_id = $nuevoProceso->id;
-                                    $nuevaControversia->save();
-                                }
-                            }
-                            
-                            // Duplicar estados de cuenta
-                            if ($record->estadoCuentas()->exists()) {
-                                foreach ($record->estadoCuentas as $estadoCuenta) {
-                                    $nuevoEstadoCuenta = $estadoCuenta->replicate();
-                                    $nuevoEstadoCuenta->proceso_id = $nuevoProceso->id;
-                                    $nuevoEstadoCuenta->save();
-                                }
-                            }
-                            
-                            // Recalcular total
-                            $nuevoProceso->calcularTotalGeneral();
-                            
-                            return redirect()->route('filament.admin.resources.procesos.edit', $nuevoProceso);
+                            return $formFields;
                         })
-                        ->requiresConfirmation()
-                        ->modalHeading('Duplicar Proceso')
-                        ->modalDescription('¿Estás seguro de que quieres duplicar este proceso?')
-                        ->modalSubmitActionLabel('Sí, duplicar'),
-                        Tables\Actions\Action::make('abrir_whatsapp')
+                        ->action(function (Proceso $record, array $data) {
+                            try {
+                                // Validar si el método está disponible
+                                $tieneEmail = $record->tipo_usuario === 'cliente' && 
+                                             !empty($record->cliente->email) &&
+                                             filter_var($record->cliente->email, FILTER_VALIDATE_EMAIL);
+                                
+                                $tieneTelefono = $record->cliente && !empty($record->cliente->telefono);
+                                
+                                if ($data['metodo'] === 'email' && !$tieneEmail) {
+                                    throw new \Exception('Este proceso no tiene un email válido registrado.');
+                                }
+                                
+                                if ($data['metodo'] === 'whatsapp' && !$tieneTelefono) {
+                                    throw new \Exception('Este proceso no tiene un teléfono registrado.');
+                                }
+                                
+                                // Generar factura
+                                $facturaPath = self::generarPdfFactura($record);
+                                $urlDescarga = self::obtenerUrlDescarga($facturaPath, $record);
+                                
+                                // Preparar mensaje
+                                $mensajeBase = $data['mensaje'] ?? '';
+                                $mensajeCompleto = $mensajeBase . "\n\n🔗 Enlace para descargar factura: " . $urlDescarga;
+                                
+                                switch ($data['metodo']) {
+                                    case 'email':
+                                        if (empty($data['email'])) {
+                                            throw new \Exception('No se proporcionó un email válido');
+                                        }
+                                        
+                                        // Enviar email (versión simple)
+                                        self::enviarEmailSimple($data['email'], $mensajeCompleto, $facturaPath, $record);
+                                        
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('Email programado')
+                                            ->body("Factura programada para enviar a: " . $data['email'])
+                                            ->success()
+                                            ->send();
+                                        break;
+                                        
+                                    case 'whatsapp':
+                                        if (empty($data['telefono'])) {
+                                            throw new \Exception('No se proporcionó un número de teléfono');
+                                        }
+                                        
+                                        // Para WhatsApp, generar el enlace
+                                        $telefonoLimpio = preg_replace('/[^0-9]/', '', $data['telefono']);
+                                        $mensajeCodificado = urlencode($mensajeCompleto);
+                                        $whatsappUrl = "https://web.whatsapp.com/send?phone={$telefonoLimpio}&text={$mensajeCodificado}";
+                                        
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('WhatsApp listo')
+                                            ->body('Haz clic en el botón para abrir WhatsApp con el mensaje preparado')
+                                            ->actions([
+                                                \Filament\Notifications\Actions\Action::make('abrir_whatsapp')
+                                                    ->label('Abrir WhatsApp')
+                                                    ->url($whatsappUrl, shouldOpenInNewTab: true)
+                                                    ->button(),
+                                            ])
+                                            ->success()
+                                            ->send();
+                                        break;
+                                        
+                                    case 'descargar':
+                                    default:
+                                        // Solo descargar
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('Factura generada')
+                                            ->body("Descargar factura desde: " . $urlDescarga)
+                                            ->actions([
+                                                \Filament\Notifications\Actions\Action::make('descargar')
+                                                    ->label('Descargar Factura')
+                                                    ->url($urlDescarga, shouldOpenInNewTab: true)
+                                                    ->button(),
+                                                \Filament\Notifications\Actions\Action::make('copiar_enlace')
+                                                    ->label('Copiar Enlace')
+                                                    ->action(function () use ($urlDescarga) {
+                                                        // Esto necesita JavaScript
+                                                        echo "<script>
+                                                            navigator.clipboard.writeText('{$urlDescarga}');
+                                                            alert('Enlace copiado al portapapeles');
+                                                        </script>";
+                                                    })
+                                                    ->icon('heroicon-o-clipboard'),
+                                            ])
+                                            ->success()
+                                            ->send();
+                                        break;
+                                }
+                                
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Error')
+                                    ->body('Error: ' . $e->getMessage())
+                                    ->danger()
+                                    ->send();
+                            }
+                        })
+                        ->modalSubmitActionLabel('Enviar')
+                        ->modalCancelActionLabel('Cancelar'),
+                    Tables\Actions\Action::make('abrir_whatsapp')
                         ->label('Enviar por WhatsApp')
                         ->icon('heroicon-o-chat-bubble-left-right')
                         ->color('success')
@@ -1422,6 +1562,199 @@ class ProcesoResource extends Resource
                             return redirect()->away("https://web.whatsapp.com/send?text={$mensajeCodificado}");
                         })
                         ->tooltip('Abrir WhatsApp con los cursos'),
+
+                    Tables\Actions\Action::make('registrar_pago')
+                        ->label('Registrar Pago')
+                        ->icon('heroicon-o-banknotes')
+                        ->color('success')
+                        ->form(function (Proceso $record) {
+                            $saldo = \App\Models\Pago::calcularSaldoProceso($record);
+                            
+                            return [
+                                Forms\Components\Section::make('Información del Proceso')
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('total_proceso')
+                                            ->label('Total del Proceso')
+                                            ->content('$ ' . number_format($record->total_general, 2))
+                                            ->extraAttributes(['class' => 'text-lg font-bold text-green-600']),
+                                        
+                                        Forms\Components\Placeholder::make('total_pagado')
+                                            ->label('Total Pagado')
+                                            ->content('$ ' . number_format($saldo['total_pagado'], 2))
+                                            ->extraAttributes(['class' => 'text-lg font-bold text-blue-600']),
+                                        
+                                        Forms\Components\Placeholder::make('saldo_pendiente')
+                                            ->label('Saldo Pendiente')
+                                            ->content('$ ' . number_format($saldo['saldo_pendiente'], 2))
+                                            ->extraAttributes([
+                                                'class' => $saldo['saldo_pendiente'] > 0 
+                                                    ? 'text-lg font-bold text-red-600' 
+                                                    : 'text-lg font-bold text-green-600'
+                                            ]),
+                                        
+                                        Forms\Components\Placeholder::make('porcentaje_pagado')
+                                            ->label('Porcentaje Pagado')
+                                            ->content(number_format($saldo['porcentaje_pagado'], 1) . '%')
+                                            ->extraAttributes([
+                                                'class' => match(true) {
+                                                    $saldo['porcentaje_pagado'] >= 100 => 'text-green-600 font-bold',
+                                                    $saldo['porcentaje_pagado'] >= 50 => 'text-yellow-600 font-bold',
+                                                    default => 'text-red-600 font-bold',
+                                                }
+                                            ]),
+                                    ])
+                                    ->columns(2),
+                                
+                                Forms\Components\Section::make('Nuevo Pago')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('valor')
+                                            ->label('Valor del Pago')
+                                            ->numeric()
+                                            ->prefix('$')
+                                            ->required()
+                                            ->minValue(1)
+                                            ->maxValue(fn () => $saldo['saldo_pendiente'])
+                                            ->helperText(fn () => 'Máximo: $' . number_format($saldo['saldo_pendiente'], 2))
+                                            ->live()
+                                            ->afterStateUpdated(function ($state, Set $set, Get $get) use ($saldo) {
+                                                $metodo = $get('metodo');
+                                                $set('observaciones', self::generarObservacion($state, $metodo, $saldo['saldo_pendiente']));
+                                            }),
+                                        
+                                        Forms\Components\Select::make('metodo')
+                                            ->label('Método de Pago')
+                                            ->options([
+                                                'efectivo' => 'Efectivo',
+                                                'transferencia' => 'Transferencia',
+                                                'tarjeta_credito' => 'Tarjeta Crédito',
+                                                'tarjeta_debito' => 'Tarjeta Débito',
+                                                'nequi' => 'Nequi',
+                                                'daviplata' => 'Daviplata',
+                                                'pse' => 'PSE',
+                                                'otro' => 'Otro',
+                                            ])
+                                            ->default('efectivo')
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function ($state, Set $set, Get $get) use ($saldo) {
+                                                $valor = $get('valor');
+                                                $set('observaciones', self::generarObservacion($valor, $state, $saldo['saldo_pendiente']));
+                                            }),
+                                        
+                                        Forms\Components\TextInput::make('referencia')
+                                            ->label('Referencia/Número')
+                                            ->placeholder('Ej: 123456, comprobante #001')
+                                            ->helperText('Opcional: número de transacción, referencia bancaria, etc.')
+                                            ->maxLength(50),
+                                        
+                                        Forms\Components\DatePicker::make('fecha_pago')
+                                            ->label('Fecha del Pago')
+                                            ->default(now())
+                                            ->required()
+                                            ->displayFormat('d/m/Y'),
+                                        
+                                        Forms\Components\Textarea::make('observaciones')
+                                            ->label('Observaciones')
+                                            ->placeholder('Pago parcial, abono inicial, etc.')
+                                            ->default(function (Get $get) use ($saldo) {
+                                                return self::generarObservacion(
+                                                    $get('valor') ?? 0,
+                                                    $get('metodo') ?? 'efectivo',
+                                                    $saldo['saldo_pendiente']
+                                                );
+                                            }),
+                                        
+                                    ])
+                                    ->columns(2),
+                            ];
+                        })
+                        ->action(function (Proceso $record, array $data) {
+                            try {
+                                // Crear el pago
+                                $pago = \App\Models\Pago::create([
+                                    'proceso_id' => $record->id,
+                                    'valor' => $data['valor'],
+                                    'metodo' => $data['metodo'],
+                                    'referencia' => $data['referencia'],
+                                    'fecha_pago' => $data['fecha_pago'],
+                                    'observaciones' => $data['observaciones'],
+                                    'registrado_por' => auth()->id(),
+                                    'estado' => 'confirmado',
+                                ]);
+                                
+                                // Calcular nuevo saldo
+                                $nuevoSaldo = \App\Models\Pago::calcularSaldoProceso($record);
+                                
+                                // Preparar mensaje para WhatsApp si está activado
+                                if ($data['enviar_recibo']) {
+                                    // Lógica de enviar recibo por WhatsApp
+                                    try {
+                                        $telefono = null;
+                                        if ($record->tipo_usuario === 'cliente' && $record->cliente && $record->cliente->telefono) {
+                                            $telefono = $record->cliente->telefono;
+                                        } elseif ($record->tipo_usuario === 'tramitador' && $record->tramitador && $record->tramitador->telefono) {
+                                            $telefono = $record->tramitador->telefono;
+                                        }
+                                        
+                                        if ($telefono) {
+                                            // Preparar mensaje
+                                            $nombreDestinatario = $record->tipo_usuario === 'cliente' 
+                                                ? ($record->cliente->nombre ?? 'Cliente')
+                                                : ($record->tramitador->nombre ?? 'Tramitador');
+                                            
+                                            $mensaje = "✅ *COMPROBANTE DE PAGO* ✅\n\n" .
+                                                "📋 *Proceso:* #{$record->id}\n" .
+                                                "👤 *Destinatario:* {$nombreDestinatario}\n" .
+                                                "💰 *Monto Pagado:* $" . number_format($pago->valor, 2) . "\n" .
+                                                "💳 *Método:* " . ucfirst($pago->metodo) . "\n" .
+                                                ($pago->referencia ? "🔢 *Referencia:* {$pago->referencia}\n" : "") .
+                                                "📅 *Fecha:* " . $pago->fecha_pago->format('d/m/Y') . "\n" .
+                                                "---\n" .
+                                                "📊 *RESUMEN FINANCIERO*\n" .
+                                                "• Total Proceso: $" . number_format($record->total_general, 2) . "\n" .
+                                                "• Total Pagado: $" . number_format($nuevoSaldo['total_pagado'], 2) . "\n" .
+                                                "• Saldo Pendiente: $" . number_format($nuevoSaldo['saldo_pendiente'], 2) . "\n" .
+                                                "• Porcentaje Pagado: " . number_format($nuevoSaldo['porcentaje_pagado'], 1) . "%\n" .
+                                                "---\n" .
+                                                "📝 *Observaciones:*\n" .
+                                                ($pago->observaciones ?: "Pago registrado correctamente") . "\n\n" .
+                                                "Gracias por su pago. 🎉";
+                                            
+                                            $mensajeCodificado = urlencode($mensaje);
+                                            $telefonoLimpio = preg_replace('/[^0-9]/', '', $telefono);
+                                            $whatsappUrl = "https://web.whatsapp.com/send?phone={$telefonoLimpio}&text={$mensajeCodificado}";
+                                            
+                                            // Agregar script para abrir WhatsApp
+                                            echo "<script>
+                                                window.open('{$whatsappUrl}', '_blank');
+                                            </script>";
+                                        }
+                                    } catch (\Exception $e) {
+                                        \Log::error('Error al enviar recibo por WhatsApp: ' . $e->getMessage());
+                                    }
+                                }
+                                
+                                \Filament\Notifications\Notification::make()
+                                    ->title('✅ Pago registrado exitosamente')
+                                    ->body("Se registró un pago de $" . number_format($data['valor'], 2) . 
+                                        "\nSaldo pendiente: $" . number_format($nuevoSaldo['saldo_pendiente'], 2))
+                                    ->success()
+                                    ->send();
+                                    
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('❌ Error al registrar pago')
+                                    ->body('Error: ' . $e->getMessage())
+                                    ->danger()
+                                    ->send();
+                            }
+                        })
+                        ->modalHeading('Registrar Pago - Proceso #')
+                        ->modalSubmitActionLabel('Registrar Pago')
+                        ->modalCancelActionLabel('Cancelar')
+                        ->visible(fn ($record) => $record->total_general > 0),
+                    
+                        
                 ])
                 ->label('Acciones')
                 ->icon('heroicon-m-ellipsis-vertical')
@@ -1661,6 +1994,104 @@ class ProcesoResource extends Resource
     }
     
 
+    private static function generarPdfFactura(Proceso $proceso): string
+    {
+        // Generar HTML de la factura usando tu método existente
+        $html = self::generateSingleInvoice($proceso);
+        
+        // Crear nombre único para el archivo
+        $filename = "factura_proceso_{$proceso->id}_" . time() . ".html";
+        $tempPath = storage_path('app/public/facturas/' . $filename);
+        
+        // Asegurar que existe el directorio
+        if (!file_exists(dirname($tempPath))) {
+            mkdir(dirname($tempPath), 0755, true);
+        }
+        
+        file_put_contents($tempPath, $html);
+        
+        return $tempPath;
+    }
+
+    private static function obtenerUrlDescarga(string $filePath, Proceso $proceso): string
+    {
+        $filename = basename($filePath);
+        return url("/storage/facturas/{$filename}");
+    }
+
+    private static function abrirWhatsApp(string $telefono, string $mensaje): void
+    {
+        // Limpiar número de teléfono
+        $telefonoLimpio = preg_replace('/[^0-9]/', '', $telefono);
+        
+        // Codificar mensaje para URL
+        $mensajeCodificado = urlencode($mensaje);
+        
+        // Crear URL de WhatsApp Web
+        $whatsappUrl = "https://web.whatsapp.com/send?phone={$telefonoLimpio}&text={$mensajeCodificado}";
+        
+        // Esto se manejará desde JavaScript en el frontend
+        echo "<script>window.open('{$whatsappUrl}', '_blank');</script>";
+    }
+
+    private static function enviarEmailSimple(string $email, string $mensaje, string $filePath, Proceso $proceso): void
+    {
+        try {
+            // Configuración básica de email
+            $subject = "Factura Proceso #{$proceso->id} - Sistema Jurídico de Tránsito";
+            
+            // Aquí iría la lógica para enviar email
+            // Por ahora solo registramos en la base de datos
+            \App\Models\EnvioFactura::create([
+                'proceso_id' => $proceso->id,
+                'email_destino' => $email,
+                'mensaje' => $mensaje,
+                'ruta_archivo' => $filePath,
+                'enviado_por' => auth()->id(),
+                'fecha_envio' => now(),
+                'estado' => 'pendiente', // Cambiar a 'enviado' cuando implementes SMTP
+            ]);
+            
+        } catch (\Exception $e) {
+            throw new \Exception("Error al enviar email: " . $e->getMessage());
+        }
+    }
+
+    private function enviarWhatsApp(string $numero, string $mensaje, string $pdfPath)
+    {
+        // Para WhatsApp Web: crear un HTML simple con el mensaje y enlace al PDF
+        $urlPdf = url('/factura/download/' . basename($pdfPath));
+        $mensajeCompleto = $mensaje . "\n\nDescargar factura: " . $urlPdf;
+        $mensajeCodificado = urlencode($mensajeCompleto);
+        
+        // Formatear número (remover espacios, guiones, etc.)
+        $numeroFormateado = preg_replace('/[^0-9]/', '', $numero);
+        
+        // Crear URL de WhatsApp
+        $urlWhatsApp = "https://web.whatsapp.com/send?phone={$numeroFormateado}&text={$mensajeCodificado}";
+        
+        // Esto abrirá WhatsApp Web
+        return redirect()->away($urlWhatsApp);
+    }
+
+    private function enviarEmail(string $email, string $mensaje, string $pdfPath, Proceso $proceso)
+    {
+        try {
+            // Usar el sistema de correo de Laravel
+            \Mail::raw($mensaje, function($message) use ($email, $proceso, $pdfPath) {
+                $message->to($email)
+                    ->subject("Factura Proceso #{$proceso->id} - Sistema Jurídico de Tránsito")
+                    ->attach($pdfPath, [
+                        'as' => "factura_proceso_{$proceso->id}.html",
+                        'mime' => 'text/html',
+                    ]);
+            });
+            
+            return true;
+        } catch (\Exception $e) {
+            throw new \Exception("Error al enviar email: " . $e->getMessage());
+        }
+    }
 
     public static function getRelations(): array
     {
@@ -1676,4 +2107,557 @@ class ProcesoResource extends Resource
             'view' => Pages\ViewProceso::route('/{record}'),
         ];
     }
+
+    // En ProcesoResource.php, añade este método después del método form() o antes de table()
+    private static function generateSingleInvoice(Proceso $proceso): string
+    {
+        // Obtener datos del proceso
+        $totalCursos = $proceso->cursos()->sum('valor_recibir');
+        $totalRenovaciones = $proceso->renovaciones()->sum('valor_total');
+        $totalLicencias = $proceso->licencias()->sum('valor_total_licencia');
+        $totalTraspasos = $proceso->traspasos()->sum('total_recibir');
+        $totalRunts = $proceso->runts()->sum('valor_recibir');
+        $totalControversias = $proceso->controversias()->sum('valor_controversia');
+        
+        // Obtener información del cliente/tramitador
+        $clienteNombre = $proceso->tipo_usuario == 'cliente' ? ($proceso->cliente->nombre ?? '-') : '-';
+        $clienteCedula = $proceso->tipo_usuario == 'cliente' ? ($proceso->cliente->cedula ?? '-') : '-';
+        $tramitadorNombre = $proceso->tipo_usuario == 'tramitador' ? ($proceso->tramitador->nombre ?? '-') : '-';
+        $tramitadorCedula = $proceso->tipo_usuario == 'tramitador' ? ($proceso->tramitador->cedula ?? '-') : '-';
+        
+        // Usar el método del modelo para obtener cédula completa
+        $cedulaBeneficiario = $proceso->cedula_completa ?? '-';
+
+        // Generar HTML de la factura
+        $html = '<!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Factura Proceso #' . $proceso->id . '</title>
+            <style>
+                @media print {
+                    @page {
+                        margin: 15mm;
+                        size: A4;
+                    }
+                    
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        font-size: 11pt;
+                    }
+                    
+                    .no-print { display: none !important; }
+                }
+                
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    line-height: 1.4;
+                    color: #333;
+                    margin: 0;
+                    padding: 20px;
+                    background: #f5f5f5;
+                }
+                
+                .invoice-container {
+                    max-width: 210mm;
+                    margin: 0 auto;
+                    background: white;
+                    padding: 25px;
+                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                    border-radius: 5px;
+                }
+                
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 30px;
+                    padding-bottom: 20px;
+                    border-bottom: 2px solid #2c3e50;
+                }
+                
+                .company-info {
+                    flex: 1;
+                }
+                
+                .invoice-info {
+                    text-align: right;
+                }
+                
+                .company-name {
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #2c3e50;
+                    margin: 0 0 10px 0;
+                }
+                
+                .invoice-title {
+                    font-size: 20px;
+                    color: #2c3e50;
+                    margin: 0 0 10px 0;
+                }
+                
+                .invoice-number {
+                    font-size: 16px;
+                    color: #666;
+                    margin: 5px 0;
+                }
+                
+                .client-info {
+                    background: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 5px;
+                    margin-bottom: 25px;
+                    border-left: 4px solid #2c3e50;
+                }
+                
+                .client-header {
+                    font-size: 14px;
+                    font-weight: bold;
+                    color: #2c3e50;
+                    margin-bottom: 10px;
+                }
+                
+                .info-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 10px;
+                }
+                
+                .info-item {
+                    padding: 5px 0;
+                }
+                
+                .badge {
+                    display: inline-block;
+                    padding: 3px 8px;
+                    border-radius: 12px;
+                    font-size: 10px;
+                    font-weight: bold;
+                    color: white;
+                }
+                
+                .badge-cliente {
+                    background-color: #28a745;
+                }
+                
+                .badge-tramitador {
+                    background-color: #17a2b8;
+                }
+                
+                .section-title {
+                    font-size: 16px;
+                    color: #2c3e50;
+                    margin: 25px 0 15px;
+                    padding-bottom: 5px;
+                    border-bottom: 1px solid #ddd;
+                }
+                
+                .services-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 15px 0;
+                    font-size: 11px;
+                }
+                
+                .services-table th {
+                    background-color: #2c3e50;
+                    color: white;
+                    padding: 8px 10px;
+                    text-align: left;
+                    border: 1px solid #ddd;
+                }
+                
+                .services-table td {
+                    padding: 6px 8px;
+                    border: 1px solid #ddd;
+                }
+                
+                .services-table tr:nth-child(even) {
+                    background-color: #f9f9f9;
+                }
+                
+                .amount {
+                    text-align: right;
+                }
+                
+                .total-section {
+                    margin-top: 30px;
+                    text-align: right;
+                }
+                
+                .total-amount {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #2c3e50;
+                    padding: 10px;
+                    background: #e8f5e8;
+                    border-radius: 5px;
+                    display: inline-block;
+                }
+                
+                .footer {
+                    margin-top: 40px;
+                    text-align: center;
+                    border-top: 1px solid #ddd;
+                    padding-top: 15px;
+                    color: #666;
+                    font-size: 10px;
+                }
+                
+                .print-btn {
+                    background: #007bff;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    margin: 20px 0;
+                }
+                
+                .print-btn:hover {
+                    background: #0056b3;
+                }
+                
+                .instructions {
+                    background: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 5px;
+                    margin-bottom: 20px;
+                    border-left: 4px solid #007bff;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="invoice-container">
+                <div class="instructions no-print">
+                    <strong>📋 Instrucciones:</strong><br>
+                    1. Haz clic en "Imprimir"<br>
+                    2. Selecciona "Guardar como PDF"<br>
+                    3. Configura márgenes a 15mm<br>
+                    4. Haz clic en "Guardar"<br>
+                    <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+                </div>
+                
+                <div class="header">
+                    <div class="company-info">
+                        <h1 class="company-name">SISTEMA JURÍDICO DE TRÁNSITO</h1>
+                        <div style="color: #666;">
+                            <div>Nit: 900.000.000-1</div>
+                            <div>Fecha: ' . $proceso->created_at->format('d/m/Y') . '</div>
+                        </div>
+                    </div>
+                    <div class="invoice-info">
+                        <h2 class="invoice-title">FACTURA</h2>
+                        <div class="invoice-number">No. ' . str_pad($proceso->id, 6, '0', STR_PAD_LEFT) . '</div>
+                        <div>Hora: ' . $proceso->created_at->format('H:i:s') . '</div>
+                    </div>
+                </div>
+                
+                <div class="client-info">
+                    <div class="client-header">INFORMACIÓN DEL ' . ($proceso->tipo_usuario == 'cliente' ? 'CLIENTE' : 'TRAMITADOR') . '</div>
+                    <div class="info-grid">';
+            
+            if ($proceso->tipo_usuario == 'cliente') {
+                $html .= '
+                        <div class="info-item">
+                            <strong>Nombre Cliente:</strong> ' . $clienteNombre . '
+                        </div>
+                        <div class="info-item">
+                            <strong>Cédula Cliente:</strong> ' . $clienteCedula . '
+                        </div>';
+            } else {
+                $html .= '
+                        <div class="info-item">
+                            <strong>Nombre Tramitador:</strong> ' . $tramitadorNombre . '
+                        </div>
+                        <div class="info-item">
+                            <strong>Cédula Tramitador:</strong> ' . $tramitadorCedula . '
+                        </div>';
+            }
+            
+            $html .= '
+                        <div class="info-item">
+                            <strong>Cédula Beneficiario:</strong> ' . $cedulaBeneficiario . '
+                        </div>
+                        <div class="info-item">
+                            <strong>Tipo:</strong> ';
+            
+            if ($proceso->tipo_usuario == 'cliente') {
+                $html .= '<span class="badge badge-cliente">Cliente</span>';
+            } else {
+                $html .= '<span class="badge badge-tramitador">Tramitador</span>';
+            }
+            
+            $html .= '
+                        </div>
+                    </div>
+                </div>';
+            
+            // Mostrar secciones solo si tienen datos
+            $hasServices = false;
+            
+            // CURSOS
+            if ($proceso->cursos()->count() > 0) {
+                $hasServices = true;
+                $html .= '
+                <div class="section-title">📚 CURSOS</div>
+                <table class="services-table">
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th>Cédula</th>
+                            <th>Porcentaje</th>
+                            <th>Valor a Recibir</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+                
+                foreach ($proceso->cursos as $curso) {
+                    $html .= '
+                        <tr>
+                            <td>' . ($curso->curso->categoria ?? 'N/A') . '</td>
+                            <td>' . ($curso->cedula ?? '-') . '</td>
+                            <td>' . ($curso->porcentaje ?? '0') . '%</td>
+                            <td class="amount">$ ' . number_format($curso->valor_recibir, 2, ',', '.') . '</td>
+                        </tr>';
+                }
+                
+                $html .= '
+                    </tbody>
+                    <tfoot>
+                        <tr style="background-color: #f0f8ff;">
+                            <td colspan="3" class="amount"><strong>Subtotal Cursos:</strong></td>
+                            <td class="amount"><strong>$ ' . number_format($totalCursos, 2, ',', '.') . '</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>';
+            }
+            
+            // RENOVACIONES
+            if ($proceso->renovaciones()->count() > 0) {
+                $hasServices = true;
+                $html .= '
+                <div class="section-title">🔄 RENOVACIONES</div>
+                <table class="services-table">
+                    <thead>
+                        <tr>
+                            <th>Renovación</th>
+                            <th>Cédula</th>
+                            <th>Examen</th>
+                            <th>Lámina</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+                
+                foreach ($proceso->renovaciones as $renovacion) {
+                    $html .= '
+                        <tr>
+                            <td>' . ($renovacion->renovacion->nombre ?? 'N/A') . '</td>
+                            <td>' . ($renovacion->cedula ?? '-') . '</td>
+                            <td>' . ($renovacion->incluye_examen ? 'Sí' : 'No') . '</td>
+                            <td>' . ($renovacion->incluye_lamina ? 'Sí' : 'No') . '</td>
+                            <td class="amount">$ ' . number_format($renovacion->valor_total, 2, ',', '.') . '</td>
+                        </tr>';
+                }
+                
+                $html .= '
+                    </tbody>
+                    <tfoot>
+                        <tr style="background-color: #f0f8ff;">
+                            <td colspan="4" class="amount"><strong>Subtotal Renovaciones:</strong></td>
+                            <td class="amount"><strong>$ ' . number_format($totalRenovaciones, 2, ',', '.') . '</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>';
+            }
+            
+            // LICENCIAS
+            if ($proceso->licencias()->count() > 0) {
+                $hasServices = true;
+                $html .= '
+                <div class="section-title">📄 LICENCIAS</div>
+                <table class="services-table">
+                    <thead>
+                        <tr>
+                            <th>Cédula</th>
+                            <th>Categorías</th>
+                            <th>Escuela</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+                
+                foreach ($proceso->licencias as $licencia) {
+                    $categorias = '-';
+                    if (is_array($licencia->categorias_seleccionadas) && !empty($licencia->categorias_seleccionadas)) {
+                        $categoriasArray = [];
+                        foreach ($licencia->categorias_seleccionadas as $categoriaId) {
+                            // Suponiendo que tienes un modelo CategoriaLicencia
+                            $categoria = \App\Models\CategoriaLicencia::find($categoriaId);
+                            if ($categoria) {
+                                $categoriasArray[] = $categoria->nombre;
+                            }
+                        }
+                        $categorias = implode(', ', $categoriasArray);
+                    }
+                    
+                    $html .= '
+                        <tr>
+                            <td>' . ($licencia->cedula ?? '-') . '</td>
+                            <td>' . $categorias . '</td>
+                            <td>' . ($licencia->escuela->nombre ?? 'N/A') . '</td>
+                            <td class="amount">$ ' . number_format($licencia->valor_total_licencia, 2, ',', '.') . '</td>
+                        </tr>';
+                }
+                
+                $html .= '
+                    </tbody>
+                    <tfoot>
+                        <tr style="background-color: #f0f8ff;">
+                            <td colspan="3" class="amount"><strong>Subtotal Licencias:</strong></td>
+                            <td class="amount"><strong>$ ' . number_format($totalLicencias, 2, ',', '.') . '</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>';
+            }
+            
+            // Si no hay servicios, mostrar mensaje
+            if (!$hasServices) {
+                $html .= '
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <h3>⚠️ No hay servicios registrados en este proceso</h3>
+                    <p>Este proceso no tiene cursos, renovaciones, licencias u otros servicios.</p>
+                </div>';
+            }
+            
+            // TOTAL GENERAL
+            $html .= '
+                <div class="total-section">
+                    <div class="total-amount">
+                        💰 TOTAL GENERAL: $ ' . number_format($proceso->total_general, 2, ',', '.') . '
+                    </div>
+                    <div style="margin-top: 10px; color: #666; font-size: 11px;">
+                        Pesos Colombianos (COP)
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <p>Sistema Jurídico de Tránsito • Factura No. ' . str_pad($proceso->id, 6, '0', STR_PAD_LEFT) . '</p>
+                    <p>Generado automáticamente el ' . now()->format('d/m/Y H:i:s') . '</p>
+                </div>
+                
+                <script>
+                    // Auto-imprimir después de 1 segundo (opcional)
+                    setTimeout(function() {
+                        window.print();
+                    }, 1000);
+                </script>
+            </div>
+        </body>
+        </html>';
+            
+        return $html;
+    }
+
+    private static function generarObservacion($valor, $metodo, $saldoPendiente): string
+    {
+        $observaciones = [];
+        
+        if ($valor > 0) {
+            $observaciones[] = "Pago de $" . number_format($valor, 2) . " por " . self::getMetodoTexto($metodo);
+            
+            if ($valor < $saldoPendiente) {
+                $observaciones[] = "Abono parcial";
+            } elseif ($valor == $saldoPendiente) {
+                $observaciones[] = "Pago completo del saldo";
+            } elseif ($valor > $saldoPendiente) {
+                $observaciones[] = "Pago excedente";
+            }
+        }
+        
+        return implode('. ', $observaciones);
+    }
+
+    private static function getMetodoTexto($metodo): string
+    {
+        return match($metodo) {
+            'efectivo' => 'efectivo',
+            'transferencia' => 'transferencia bancaria',
+            'tarjeta_credito' => 'tarjeta de crédito',
+            'tarjeta_debito' => 'tarjeta de débito',
+            'nequi' => 'Nequi',
+            'daviplata' => 'Daviplata',
+            'pse' => 'PSE',
+            'otro' => 'otro medio',
+            default => $metodo,
+        };
+    }
+
+    private function enviarReciboWhatsApp(Proceso $proceso, Pago $pago, array $saldo): void
+    {
+        try {
+            // Determinar destinatario
+            $telefono = null;
+            if ($proceso->tipo_usuario === 'cliente' && $proceso->cliente && $proceso->cliente->telefono) {
+                $telefono = $proceso->cliente->telefono;
+            } elseif ($proceso->tipo_usuario === 'tramitador' && $proceso->tramitador && $proceso->tramitador->telefono) {
+                $telefono = $proceso->tramitador->telefono;
+            }
+            
+            if (!$telefono) {
+                return; // No hay teléfono para enviar
+            }
+            
+            // Preparar mensaje
+            $mensaje = $this->generarMensajeRecibo($proceso, $pago, $saldo);
+            $mensajeCodificado = urlencode($mensaje);
+            
+            // Limpiar número de teléfono
+            $telefonoLimpio = preg_replace('/[^0-9]/', '', $telefono);
+            
+            // Crear URL de WhatsApp
+            $whatsappUrl = "https://web.whatsapp.com/send?phone={$telefonoLimpio}&text={$mensajeCodificado}";
+            
+            // Abrir WhatsApp en nueva pestaña (esto se ejecutará en el frontend)
+            echo "<script>
+                window.open('{$whatsappUrl}', '_blank');
+            </script>";
+            
+        } catch (\Exception $e) {
+            // Silenciar errores de WhatsApp, no interrumpir el registro del pago
+            \Log::error('Error al enviar recibo por WhatsApp: ' . $e->getMessage());
+        }
+    }
+
+    private function generarMensajeRecibo(Proceso $proceso, Pago $pago, array $saldo): string
+    {
+        $nombreDestinatario = $proceso->tipo_usuario === 'cliente' 
+            ? ($proceso->cliente->nombre ?? 'Cliente')
+            : ($proceso->tramitador->nombre ?? 'Tramitador');
+        
+        return "✅ *COMPROBANTE DE PAGO* ✅\n\n" .
+            "📋 *Proceso:* #{$proceso->id}\n" .
+            "👤 *Destinatario:* {$nombreDestinatario}\n" .
+            "💰 *Monto Pagado:* $" . number_format($pago->valor, 2) . "\n" .
+            "💳 *Método:* " . ucfirst($pago->metodo) . "\n" .
+            ($pago->referencia ? "🔢 *Referencia:* {$pago->referencia}\n" : "") .
+            "📅 *Fecha:* " . $pago->fecha_pago->format('d/m/Y') . "\n" .
+            "---\n" .
+            "📊 *RESUMEN FINANCIERO*\n" .
+            "• Total Proceso: $" . number_format($proceso->total_general, 2) . "\n" .
+            "• Total Pagado: $" . number_format($saldo['total_pagado'], 2) . "\n" .
+            "• Saldo Pendiente: $" . number_format($saldo['saldo_pendiente'], 2) . "\n" .
+            "• Porcentaje Pagado: " . number_format($saldo['porcentaje_pagado'], 1) . "%\n" .
+            "---\n" .
+            "📝 *Observaciones:*\n" .
+            ($pago->observaciones ?: "Pago registrado correctamente") . "\n\n" .
+            "Gracias por su pago. 🎉";
+    }
+
 }

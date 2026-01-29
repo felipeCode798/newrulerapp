@@ -295,6 +295,33 @@ class ViewProceso extends ViewRecord
                     ])
                     ->visible(fn ($record) => $record->estadoCuentas()->count() > 0)
                     ->collapsible(),
+
+                Infolists\Components\Section::make('Historial de Pagos')
+                    ->schema([
+                        Infolists\Components\RepeatableEntry::make('pagos')
+                            ->schema([
+                                Infolists\Components\TextEntry::make('fecha_pago')
+                                    ->label('Fecha')
+                                    ->date('d/m/Y'),
+                                Infolists\Components\TextEntry::make('valor')
+                                    ->label('Valor')
+                                    ->money('COP'),
+                                Infolists\Components\TextEntry::make('metodo')
+                                    ->label('Método')
+                                    ->badge()
+                                    ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state))),
+                                Infolists\Components\TextEntry::make('referencia')
+                                    ->label('Referencia'),
+                                Infolists\Components\TextEntry::make('observaciones')
+                                    ->label('Observaciones')
+                                    ->limit(50),
+                                Infolists\Components\TextEntry::make('registradoPor.name')
+                                    ->label('Registrado por'),
+                            ])
+                            ->columns(3)
+                    ])
+                    ->visible(fn ($record) => $record->pagos()->count() > 0)
+                    ->collapsible(),
             ]);
     }
 }
