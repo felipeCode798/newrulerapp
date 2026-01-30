@@ -10,13 +10,13 @@ class Abogado extends Model
     protected $fillable = [
         'nombre',
         'documento',
-        'especialidad',
-        'tarjeta_profesional',
+        // 'especialidad',
+        // 'tarjeta_profesional',
         'telefono',
         'celular',
         'email',
         'direccion',
-        'ciudad',
+        // 'ciudad',
         'honorarios_hora',
         'porcentaje_comision',
         'areas_practica',
@@ -27,9 +27,9 @@ class Abogado extends Model
     ];
 
     protected $casts = [
-        'honorarios_hora' => 'decimal:2',
-        'porcentaje_comision' => 'decimal:2',
-        'disponible' => 'boolean',
+        // 'honorarios_hora' => 'decimal:2',
+        // 'porcentaje_comision' => 'decimal:2',
+        // 'disponible' => 'boolean',
         'activo' => 'boolean',
     ];
 

@@ -148,38 +148,10 @@ class ProcesoResource extends Resource
                         Forms\Components\Repeater::make('cursos')
                             ->relationship('cursos')
                             ->schema([
-                                Forms\Components\TextInput::make('nombre')
-                                    ->label('Nombre del Cliente')
-                                    ->required()
-                                    ->columnSpan(2),
-
-                                Forms\Components\Select::make('curso_id')
-                                    ->label('Curso')
-                                    ->options(Curso::where('activo', true)->get()->pluck('categoria', 'id'))
-                                    ->required()
-                                    ->live()
-                                    ->searchable(),
-
-                                Forms\Components\TextInput::make('numero_comparendo')
-                                    ->label('Número de Comparendo'),
-
-                                Forms\Components\Select::make('cia_id')
-                                    ->label('CIA')
-                                    ->options(function () {
-                                        return \App\Models\Cia::pluck('nombre', 'id')->toArray();
-                                    })
-                                    ->searchable()
-                                    ->preload()
-                                    ->createOptionForm([
-                                        Forms\Components\TextInput::make('nombre')
-                                            ->required(),
-                                        Forms\Components\TextInput::make('direccion'),
-                                        Forms\Components\TextInput::make('telefono'),
-                                    ]),
-
                                 Forms\Components\TextInput::make('cedula')
                                     ->label('Cédula')
                                     ->required()
+                                    ->columnSpan(2)
                                     ->default(function (Get $get) {
                                         $tipoUsuario = $get('../../tipo_usuario');
                                         if ($tipoUsuario === 'cliente') {
@@ -188,6 +160,23 @@ class ProcesoResource extends Resource
                                         return '';
                                     }),
 
+                                Forms\Components\TextInput::make('nombre')
+                                    ->label('Nombre del Cliente')
+                                    ->required()
+                                    ->columnSpan(3),
+
+                                Forms\Components\Select::make('curso_id')
+                                    ->label('Curso')
+                                    ->options(Curso::where('activo', true)->get()->pluck('categoria', 'id'))
+                                    ->required()
+                                    ->live()
+                                    ->columnSpan(2)
+                                    ->searchable(),
+
+                                Forms\Components\TextInput::make('numero_comparendo')
+                                    ->columnSpan(2)
+                                    ->label('Número de Comparendo'),
+
                                 Forms\Components\Select::make('porcentaje')
                                     ->label('Porcentaje')
                                     ->options([
@@ -195,10 +184,22 @@ class ProcesoResource extends Resource
                                         '20' => '20%',
                                     ])
                                     ->required()
+                                    ->columnSpan(1)
                                     ->live()
                                     ->afterStateUpdated(function (Set $set, Get $get, $state) {
                                         self::calcularValoresCurso($set, $get, $state);
                                     }),
+
+                                Forms\Components\Select::make('cia_id')
+                                    ->label('CIA')
+                                    ->options(function () {
+                                        return \App\Models\Cia::pluck('nombre', 'id')->toArray();
+                                    })
+                                    ->searchable()
+                                    ->columnSpan(2)
+                                    ->preload(),
+
+                                
 
                                 Forms\Components\TextInput::make('valor_transito')
                                     ->label('Valor Tránsito')
@@ -245,81 +246,115 @@ class ProcesoResource extends Resource
                     Forms\Components\Repeater::make('renovaciones')
                         ->relationship('renovaciones')
                         ->schema([
-                            Forms\Components\TextInput::make('nombre')
-                                    ->label('Nombre del Cliente')
-                                    ->required()
-                                    ->columnSpan(2),
-
-                            Forms\Components\TextInput::make('cedula')
-                                ->label('Cédula')
-                                ->required()
-                                ->default(function (Get $get) {
-                                    $tipoUsuario = $get('../../tipo_usuario');
-                                    if ($tipoUsuario === 'cliente') {
-                                        return $get('../../cliente_cedula_base');
-                                    }
-                                    return '';
-                                }),
-
-                            Forms\Components\Select::make('renovacion_id')
-                                ->label('Renovación')
-                                ->options(Renovacion::where('activo', true)->pluck('nombre', 'id'))
-                                ->required()
-                                ->live()
-                                ->searchable()
-                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
-                                    $incluyeExamen = $get('incluye_examen') ?? true;
-                                    $incluyeLamina = $get('incluye_lamina') ?? true;
-                                    self::calcularValoresRenovacion($set, $get, $state, $incluyeExamen, $incluyeLamina);
-                                }),
-
-                            Forms\Components\Checkbox::make('incluye_examen')
-                                ->label('Incluye Examen')
-                                ->default(true)
-                                ->live()
-                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
-                                    $renovacionId = $get('renovacion_id');
-                                    $incluyeLamina = $get('incluye_lamina') ?? true;
-                                    self::calcularValoresRenovacion($set, $get, $renovacionId, $state, $incluyeLamina);
-                                }),
-
-                            Forms\Components\Checkbox::make('incluye_lamina')
-                                ->label('Incluye Lámina')
-                                ->default(true)
-                                ->live()
-                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
-                                    $renovacionId = $get('renovacion_id');
-                                    $incluyeExamen = $get('incluye_examen') ?? true;
-                                    self::calcularValoresRenovacion($set, $get, $renovacionId, $incluyeExamen, $state);
-                                }),
-
-                            Forms\Components\TextInput::make('valor_total')
-                                ->label('Valor Total')
-                                ->numeric()
-                                ->prefix('$')
-                                ->required()
-                                ->disabled(),
-
-                            Forms\Components\Select::make('estado')
-                                ->label('Estado')
-                                ->options([
-                                    'pendiente' => 'Pendiente',
-                                    'enviado' => 'Enviado',
-                                    'en_proceso' => 'En Proceso',
-                                    'finalizado' => 'Finalizado',
-                                ])
-                                ->default('pendiente')
-                                ->required(),
-
-                            Forms\Components\Textarea::make('descripcion_general')
-                                ->label('Descripción General')
-                                ->rows(2)
-                                ->columnSpanFull(),
+                            // Fila 1: Información básica del cliente
+                            Forms\Components\Grid::make(4)
+                                ->schema([
+                                    Forms\Components\TextInput::make('nombre')
+                                        ->label('Nombre del Cliente')
+                                        ->required()
+                                        ->columnSpan(2),
+                                    
+                                    Forms\Components\TextInput::make('cedula')
+                                        ->label('Cédula')
+                                        ->required()
+                                        ->default(function (Get $get) {
+                                            $tipoUsuario = $get('../../tipo_usuario');
+                                            if ($tipoUsuario === 'cliente') {
+                                                return $get('../../cliente_cedula_base');
+                                            }
+                                            return '';
+                                        }),
+                                    
+                                    Forms\Components\Select::make('estado')
+                                        ->label('Estado')
+                                        ->options([
+                                            'pendiente' => 'Pendiente',
+                                            'enviado' => 'Enviado',
+                                            'en_proceso' => 'En Proceso',
+                                            'finalizado' => 'Finalizado',
+                                        ])
+                                        ->default('pendiente')
+                                        ->required(),
+                                ]),
+                            
+                            
+                            // Fila 2: Tipo de renovación y opciones
+                            Forms\Components\Grid::make(4)
+                                ->schema([
+                                    Forms\Components\Select::make('renovacion_id')
+                                        ->label('Tipo de Renovación')
+                                        ->options(Renovacion::where('activo', true)->pluck('nombre', 'id'))
+                                        ->required()
+                                        ->live()
+                                        ->searchable()
+                                        ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                            $incluyeExamen = $get('incluye_examen') ?? true;
+                                            $incluyeLamina = $get('incluye_lamina') ?? true;
+                                            self::calcularValoresRenovacion($set, $get, $state, $incluyeExamen, $incluyeLamina);
+                                        })
+                                        ->columnSpan(3),
+                                    
+                                    Forms\Components\Grid::make(1)
+                                        ->schema([
+                                            Forms\Components\Checkbox::make('incluye_examen')
+                                                ->label('Incluye Examen')
+                                                ->default(true)
+                                                ->live()
+                                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                                    $renovacionId = $get('renovacion_id');
+                                                    $incluyeLamina = $get('incluye_lamina') ?? true;
+                                                    self::calcularValoresRenovacion($set, $get, $renovacionId, $state, $incluyeLamina);
+                                                }),
+                                            
+                                            Forms\Components\Checkbox::make('incluye_lamina')
+                                                ->label('Incluye Lámina')
+                                                ->default(true)
+                                                ->live()
+                                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                                    $renovacionId = $get('renovacion_id');
+                                                    $incluyeExamen = $get('incluye_examen') ?? true;
+                                                    self::calcularValoresRenovacion($set, $get, $renovacionId, $incluyeExamen, $state);
+                                                }),
+                                        ])
+                                        ->columnSpan(1),
+                                ]),
+                            
+                            // Separador
+                            Forms\Components\Placeholder::make('separator2')
+                                ->label('')
+                                ->content(''),
+                            
+                            // Fila 3: Valor y descripción
+                            Forms\Components\Grid::make(3)
+                                ->schema([
+                                    Forms\Components\TextInput::make('valor_total')
+                                        ->label('Valor Total')
+                                        ->numeric()
+                                        ->prefix('$')
+                                        ->required()
+                                        ->disabled()
+                                        ->columnSpan(3),
+                                    
+                                    Forms\Components\Textarea::make('descripcion_general')
+                                        ->label('Descripción / Observaciones')
+                                        ->rows(2)
+                                        ->placeholder('Agregue observaciones sobre esta renovación...')
+                                        ->columnSpan(3),
+                                ]),
                         ])
-                        ->columns(4)
+                        ->columns(1) // Cambiar a 1 columna principal para mejor control
                         ->defaultItems(0)
                         ->addActionLabel('Agregar Renovación')
-                        ->collapsible(),
+                        ->collapsible()
+                        ->itemLabel(fn (array $state): ?string => 
+                            $state['nombre'] 
+                                ? ($state['renovacion_id'] 
+                                    ? "{$state['nombre']} - " . Renovacion::find($state['renovacion_id'])?->nombre 
+                                    : $state['nombre']
+                                )
+                                : 'Nueva Renovación'
+                        )
+                        ->reorderable(),
                 ])
                 ->collapsible(),
 
@@ -339,7 +374,7 @@ class ProcesoResource extends Resource
                                         }
                                         return '';
                                     })
-                                    ->columnSpan(2),
+                                    ->columnSpan(3),
 
                                 Forms\Components\CheckboxList::make('categorias_seleccionadas')
                                     ->label('Categorías de Licencia')
@@ -402,12 +437,7 @@ class ProcesoResource extends Resource
                                     ->searchable()
                                     ->visible(fn (Get $get) => $get('enrolamiento') === 'cruce_pin'),
 
-                                Forms\Components\TextInput::make('valor_carta_escuela')
-                                    ->label('Valor Carta Escuela')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->required()
-                                    ->disabled(),
+                                
 
                                 Forms\Components\Select::make('examen_medico')
                                     ->label('Examen Médico')
@@ -424,13 +454,7 @@ class ProcesoResource extends Resource
                                         self::calcularValorExamenMedico($set, $get, $state);
                                     }),
 
-                                Forms\Components\TextInput::make('valor_examen_medico')
-                                    ->label('Valor Examen Médico')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->disabled()
-                                    ->default(0),
-
+                                
                                 Forms\Components\Select::make('impresion')
                                     ->label('Impresión')
                                     ->options([
@@ -445,13 +469,6 @@ class ProcesoResource extends Resource
                                     ->afterStateUpdated(function (Set $set, Get $get, $state) {
                                         self::calcularValorImpresion($set, $get, $state);
                                     }),
-
-                                Forms\Components\TextInput::make('valor_impresion')
-                                    ->label('Valor Impresión')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->disabled()
-                                    ->default(0),
 
                                 Forms\Components\Select::make('sin_curso')
                                     ->label('Sin Curso')
@@ -468,12 +485,34 @@ class ProcesoResource extends Resource
                                         self::calcularValorSinCurso($set, $get, $state);
                                     }),
 
+                                Forms\Components\TextInput::make('valor_examen_medico')
+                                    ->label('Valor Examen Médico')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->disabled()
+                                    ->default(0),
+
+                                Forms\Components\TextInput::make('valor_impresion')
+                                    ->label('Valor Impresión')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->disabled()
+                                    ->default(0),
+
+
                                 Forms\Components\TextInput::make('valor_sin_curso')
                                     ->label('Valor Sin Curso')
                                     ->numeric()
                                     ->prefix('$')
                                     ->disabled()
                                     ->default(0),
+                                
+                                Forms\Components\TextInput::make('valor_carta_escuela')
+                                    ->label('Valor Carta Escuela')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->required()
+                                    ->disabled(),
 
                                 Forms\Components\TextInput::make('valor_total_licencia')
                                     ->label('Valor Total Licencia')
@@ -481,17 +520,14 @@ class ProcesoResource extends Resource
                                     ->prefix('$')
                                     ->required()
                                     ->disabled()
-                                    ->columnSpan(3),
-                                    Forms\Components\Select::make('estado')
-                                    ->label('Estado')
-                                    ->options([
-                                        'pendiente' => 'Pendiente',
-                                        'enviado' => 'Enviado',
-                                        'en_proceso' => 'En Proceso',
-                                        'finalizado' => 'Finalizado',
-                                    ])
-                                    ->default('pendiente')
-                                    ->required(),
+                                    ->default(0)
+                                    ->dehydrated() // Importante: asegura que se guarde en la base de datos
+                                    ->columnSpan(2)
+                                    ->reactive()
+                                    ->afterStateHydrated(function (Set $set, Get $get) {
+                                        // Calcular valor inicial
+                                        $set('valor_total_licencia', self::calcularTotalLicencia($get));
+                                    }),
 
                                 Forms\Components\Textarea::make('descripcion_general')
                                     ->label('Descripción General')
@@ -594,6 +630,7 @@ class ProcesoResource extends Resource
                                         'finalizado' => 'Finalizado',
                                     ])
                                     ->default('pendiente')
+                                    ->columnSpan(3)
                                     ->required(),
 
                                 Forms\Components\Textarea::make('descripcion_general')
@@ -680,6 +717,7 @@ class ProcesoResource extends Resource
                                         'finalizado' => 'Finalizado',
                                     ])
                                     ->default('pendiente')
+                                    ->columnSpan(2)
                                     ->required(),
 
                                 Forms\Components\Textarea::make('descripcion_general')
@@ -700,13 +738,6 @@ class ProcesoResource extends Resource
                         Forms\Components\Repeater::make('controversias')
                             ->relationship('controversias')
                             ->schema([
-                                Forms\Components\TextInput::make('nombre')
-                                    ->label('Nombre del Cliente')
-                                    ->required(),
-
-                                Forms\Components\TextInput::make('comparendo')
-                                    ->label('Número de Comparendo'),
-
                                 Forms\Components\TextInput::make('cedula')
                                     ->label('Cédula')
                                     ->required()
@@ -716,8 +747,12 @@ class ProcesoResource extends Resource
                                             return $get('../../cliente_cedula_base');
                                         }
                                         return '';
-                                    })
-                                    ->columnSpan(2),
+                                    }),
+
+                                Forms\Components\TextInput::make('nombre')
+                                    ->label('Nombre del Cliente')
+                                    ->columnSpan(2)
+                                    ->required(),
 
                                 Forms\Components\TextInput::make('celular')
                                     ->label('Celular'),
@@ -731,6 +766,9 @@ class ProcesoResource extends Resource
                                         self::calcularValorControversia($set, $get, $state);
                                     })
                                     ->columnSpan(2),
+
+                                Forms\Components\TextInput::make('comparendo')
+                                    ->label('Número de Comparendo'),
 
                                 Forms\Components\Select::make('cia_id')
                                     ->label('CIA')
@@ -746,31 +784,40 @@ class ProcesoResource extends Resource
                                     ->prefix('$')
                                     ->default(0),
 
-                                Forms\Components\TextInput::make('valor_controversia')
-                                    ->label('Valor Controversia')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->required()
-                                    ->disabled()
-                                    ->columnSpan(2),
+                                Forms\Components\TextInput::make('codigo_controversia')
+                                    ->label('Código Controversia')
+                                    ->required(),
 
                                 Forms\Components\DateTimePicker::make('fecha_hora_cita')
                                     ->label('Fecha y Hora de Cita')
                                     ->required()
                                     ->columnSpan(2),
 
-                                Forms\Components\TextInput::make('codigo_controversia')
-                                    ->label('Código Controversia')
-                                    ->required()
-                                    ->columnSpan(2),
-
                                 Forms\Components\TextInput::make('venta_controversia')
-                                    ->label('Venta Controversia')
+                                    ->label('Ventana Controversia')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->columnSpan(2)
+                                    ->required(),
+
+                                Forms\Components\TextInput::make('valor_controversia')
+                                    ->label('Valor Controversia')
                                     ->numeric()
                                     ->prefix('$')
-                                    ->default(0)
                                     ->required()
-                                    ->columnSpan(2),
+                                    ->disabled(),
+                                
+                                Forms\Components\Select::make('estado')
+                                    ->label('Estado')
+                                    ->options([
+                                        'pendiente' => 'Pendiente',
+                                        'enviado' => 'Enviado',
+                                        'en_proceso' => 'En Proceso',
+                                        'finalizado' => 'Finalizado',
+                                    ])
+                                    ->default('pendiente')
+                                    ->required(),
+                                
 
                                 Forms\Components\FileUpload::make('documento_identidad')
                                     ->label('Documento de Identidad')
@@ -784,25 +831,14 @@ class ProcesoResource extends Resource
                                     ->acceptedFileTypes(['application/pdf', 'image/*'])
                                     ->columnSpan(2),
 
-                                Forms\Components\Toggle::make('debe')
-                                    ->label('¿Debe?')
-                                    ->default(false),
-
-                                    Forms\Components\Select::make('estado')
-                                    ->label('Estado')
-                                    ->options([
-                                        'pendiente' => 'Pendiente',
-                                        'enviado' => 'Enviado',
-                                        'en_proceso' => 'En Proceso',
-                                        'finalizado' => 'Finalizado',
-                                    ])
-                                    ->default('pendiente')
-                                    ->required(),
-
                                 Forms\Components\Textarea::make('descripcion_general')
                                     ->label('Descripción General')
                                     ->rows(2)
                                     ->columnSpanFull(),
+                                
+                                Forms\Components\Toggle::make('debe')
+                                    ->label('¿Debe?')
+                                    ->default(false),
                             ])
                             ->columns(4)
                             ->defaultItems(0)
@@ -929,76 +965,22 @@ class ProcesoResource extends Resource
         $set('valor_total', $total);
     }
     
-    protected static function calcularValoresLicencia($set, $escuelaId) {
+    protected static function calcularValoresLicencia(Set $set, $escuelaId) {
         if (!$escuelaId) {
             return;
         }
-
+    
         $escuela = Escuela::find($escuelaId);
         $set('valor_carta_escuela', $escuela->valor_carta_escuela);
-
-        // Recalcular total
-        self::recalcularTotalLicencia($set, $escuelaId);
+    
+        // Recalcular total usando el método único
+        $set('valor_total_licencia', function (Get $get) {
+            return self::calcularTotalLicencia($get);
+        });
     }
 
-    protected static function calcularValorExamenMedico(Set $set, Get $get, $estado) {
-        if ($estado === 'no_aplica') {
-            $set('valor_examen_medico', 0);
-        } else {
-            $categorias = $get('categorias_seleccionadas') ?? [];
-            $totalExamen = 0;
-            if (!empty($categorias)) {
-                foreach ($categorias as $categoriaId) {
-                    $categoria = CategoriaLicencia::find($categoriaId);
-                    if ($categoria) {
-                        $totalExamen += $categoria->examen_medico;
-                    }
-                }
-            }
-            $set('valor_examen_medico', $totalExamen);
-        }
-        self::recalcularTotalLicencia($set, $get);
-    }
-
-    protected static function calcularValorImpresion(Set $set, Get $get, $estado) {
-        if ($estado === 'no_aplica') {
-            $set('valor_impresion', 0);
-        } else {
-            $categorias = $get('categorias_seleccionadas') ?? [];
-            $totalImpresion = 0;
-            if (!empty($categorias)) {
-                foreach ($categorias as $categoriaId) {
-                    $categoria = CategoriaLicencia::find($categoriaId);
-                    if ($categoria) {
-                        $totalImpresion += $categoria->lamina;
-                    }
-                }
-            }
-            $set('valor_impresion', $totalImpresion);
-        }
-        self::recalcularTotalLicencia($set, $get);
-    }
-
-    protected static function calcularValorSinCurso(Set $set, Get $get, $estado) {
-        if ($estado === 'no_aplica') {
-            $set('valor_sin_curso', 0);
-        } else {
-            $categorias = $get('categorias_seleccionadas') ?? [];
-            $totalSinCurso = 0;
-            if (!empty($categorias)) {
-                foreach ($categorias as $categoriaId) {
-                    $categoria = CategoriaLicencia::find($categoriaId);
-                    if ($categoria) {
-                        $totalSinCurso += $categoria->sin_curso;
-                    }
-                }
-            }
-            $set('valor_sin_curso', $totalSinCurso);
-        }
-        self::recalcularTotalLicencia($set, $get);
-    }
-
-    protected static function recalcularTotalLicencia(Set $set, Get $get) {
+    protected static function calcularTotalLicencia(Get $get): float
+    {
         $valorCarta = $get('valor_carta_escuela') ?? 0;
         $valorExamen = $get('valor_examen_medico') ?? 0;
         $valorImpresion = $get('valor_impresion') ?? 0;
@@ -1016,9 +998,71 @@ class ProcesoResource extends Resource
                 }
             }
         }
-    
-        $total = $valorCarta + $valorExamen + $valorImpresion + $valorSinCurso + $totalHonorarios;
-        $set('valor_total_licencia', $total);
+
+        return $valorCarta + $valorExamen + $valorImpresion + $valorSinCurso + $totalHonorarios;
+    }
+
+    protected static function calcularValorExamenMedico(Set $set, Get $get, $estado): void
+    {
+        if ($estado === 'no_aplica') {
+            $set('valor_examen_medico', 0);
+        } else {
+            $categorias = $get('categorias_seleccionadas') ?? [];
+            $totalExamen = 0;
+            if (!empty($categorias)) {
+                foreach ($categorias as $categoriaId) {
+                    $categoria = CategoriaLicencia::find($categoriaId);
+                    if ($categoria) {
+                        $totalExamen += $categoria->examen_medico;
+                    }
+                }
+            }
+            $set('valor_examen_medico', $totalExamen);
+        }
+        // Actualizar total directamente
+        $set('valor_total_licencia', self::calcularTotalLicencia($get));
+    }
+
+    protected static function calcularValorImpresion(Set $set, Get $get, $estado): void
+    {
+        if ($estado === 'no_aplica') {
+            $set('valor_impresion', 0);
+        } else {
+            $categorias = $get('categorias_seleccionadas') ?? [];
+            $totalImpresion = 0;
+            if (!empty($categorias)) {
+                foreach ($categorias as $categoriaId) {
+                    $categoria = CategoriaLicencia::find($categoriaId);
+                    if ($categoria) {
+                        $totalImpresion += $categoria->lamina;
+                    }
+                }
+            }
+            $set('valor_impresion', $totalImpresion);
+        }
+        // Actualizar total directamente
+        $set('valor_total_licencia', self::calcularTotalLicencia($get));
+    }
+
+    protected static function calcularValorSinCurso(Set $set, Get $get, $estado): void
+    {
+        if ($estado === 'no_aplica') {
+            $set('valor_sin_curso', 0);
+        } else {
+            $categorias = $get('categorias_seleccionadas') ?? [];
+            $totalSinCurso = 0;
+            if (!empty($categorias)) {
+                foreach ($categorias as $categoriaId) {
+                    $categoria = CategoriaLicencia::find($categoriaId);
+                    if ($categoria) {
+                        $totalSinCurso += $categoria->sin_curso;
+                    }
+                }
+            }
+            $set('valor_sin_curso', $totalSinCurso);
+        }
+        // Actualizar total directamente
+        $set('valor_total_licencia', self::calcularTotalLicencia($get));
     }
 
     protected static function calcularTotalTraspaso(Set $set, Get $get) {
@@ -1501,6 +1545,7 @@ class ProcesoResource extends Resource
                         })
                         ->modalSubmitActionLabel('Enviar')
                         ->modalCancelActionLabel('Cancelar'),
+
                     Tables\Actions\Action::make('abrir_whatsapp')
                         ->label('Enviar por WhatsApp')
                         ->icon('heroicon-o-chat-bubble-left-right')
@@ -1656,6 +1701,7 @@ class ProcesoResource extends Resource
                                         Forms\Components\Textarea::make('observaciones')
                                             ->label('Observaciones')
                                             ->placeholder('Pago parcial, abono inicial, etc.')
+                                            ->columnSpanFull()
                                             ->default(function (Get $get) use ($saldo) {
                                                 return self::generarObservacion(
                                                     $get('valor') ?? 0,
@@ -1684,55 +1730,6 @@ class ProcesoResource extends Resource
                                 
                                 // Calcular nuevo saldo
                                 $nuevoSaldo = \App\Models\Pago::calcularSaldoProceso($record);
-                                
-                                // Preparar mensaje para WhatsApp si está activado
-                                if ($data['enviar_recibo']) {
-                                    // Lógica de enviar recibo por WhatsApp
-                                    try {
-                                        $telefono = null;
-                                        if ($record->tipo_usuario === 'cliente' && $record->cliente && $record->cliente->telefono) {
-                                            $telefono = $record->cliente->telefono;
-                                        } elseif ($record->tipo_usuario === 'tramitador' && $record->tramitador && $record->tramitador->telefono) {
-                                            $telefono = $record->tramitador->telefono;
-                                        }
-                                        
-                                        if ($telefono) {
-                                            // Preparar mensaje
-                                            $nombreDestinatario = $record->tipo_usuario === 'cliente' 
-                                                ? ($record->cliente->nombre ?? 'Cliente')
-                                                : ($record->tramitador->nombre ?? 'Tramitador');
-                                            
-                                            $mensaje = "✅ *COMPROBANTE DE PAGO* ✅\n\n" .
-                                                "📋 *Proceso:* #{$record->id}\n" .
-                                                "👤 *Destinatario:* {$nombreDestinatario}\n" .
-                                                "💰 *Monto Pagado:* $" . number_format($pago->valor, 2) . "\n" .
-                                                "💳 *Método:* " . ucfirst($pago->metodo) . "\n" .
-                                                ($pago->referencia ? "🔢 *Referencia:* {$pago->referencia}\n" : "") .
-                                                "📅 *Fecha:* " . $pago->fecha_pago->format('d/m/Y') . "\n" .
-                                                "---\n" .
-                                                "📊 *RESUMEN FINANCIERO*\n" .
-                                                "• Total Proceso: $" . number_format($record->total_general, 2) . "\n" .
-                                                "• Total Pagado: $" . number_format($nuevoSaldo['total_pagado'], 2) . "\n" .
-                                                "• Saldo Pendiente: $" . number_format($nuevoSaldo['saldo_pendiente'], 2) . "\n" .
-                                                "• Porcentaje Pagado: " . number_format($nuevoSaldo['porcentaje_pagado'], 1) . "%\n" .
-                                                "---\n" .
-                                                "📝 *Observaciones:*\n" .
-                                                ($pago->observaciones ?: "Pago registrado correctamente") . "\n\n" .
-                                                "Gracias por su pago. 🎉";
-                                            
-                                            $mensajeCodificado = urlencode($mensaje);
-                                            $telefonoLimpio = preg_replace('/[^0-9]/', '', $telefono);
-                                            $whatsappUrl = "https://web.whatsapp.com/send?phone={$telefonoLimpio}&text={$mensajeCodificado}";
-                                            
-                                            // Agregar script para abrir WhatsApp
-                                            echo "<script>
-                                                window.open('{$whatsappUrl}', '_blank');
-                                            </script>";
-                                        }
-                                    } catch (\Exception $e) {
-                                        \Log::error('Error al enviar recibo por WhatsApp: ' . $e->getMessage());
-                                    }
-                                }
                                 
                                 \Filament\Notifications\Notification::make()
                                     ->title('✅ Pago registrado exitosamente')

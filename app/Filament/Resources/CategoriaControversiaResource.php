@@ -31,7 +31,7 @@ class CategoriaControversiaResource extends Resource
                         Forms\Components\TextInput::make('nombre')
                             ->required()
                             ->maxLength(255)
-                            ->columnSpan(2),
+                            ->columnSpan(3),
 
                         Forms\Components\TextInput::make('codigo')
                             ->label('Código')
@@ -42,6 +42,7 @@ class CategoriaControversiaResource extends Resource
                         Forms\Components\TextInput::make('precio_cliente')
                             ->label('Precio para Cliente')
                             ->numeric()
+                            ->columnSpan(2)
                             ->prefix('$')
                             ->default(0)
                             ->required(),

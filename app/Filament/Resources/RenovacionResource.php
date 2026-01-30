@@ -16,6 +16,8 @@ class RenovacionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-path';
     protected static ?string $navigationLabel = 'Renovaciones';
+    protected static ?string $modelLabel = 'Renovacion';
+    protected static ?string $pluralModelLabel = 'Renovaciones';
     protected static ?string $navigationGroup = 'Configuración';
     protected static ?int $navigationSort = 4;
 
@@ -28,7 +30,7 @@ class RenovacionResource extends Resource
                         Forms\Components\TextInput::make('nombre')
                             ->required()
                             ->maxLength(255)
-                            ->columnSpan(2),
+                            ->columnSpan(3),
 
                         Forms\Components\TextInput::make('precio_renovacion')
                             ->label('Precio Renovación')

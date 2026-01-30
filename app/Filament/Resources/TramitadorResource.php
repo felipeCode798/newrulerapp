@@ -18,6 +18,8 @@ class TramitadorResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
     protected static ?string $navigationLabel = 'Tramitadores';
+    protected static ?string $modelLabel = 'Tramitador';
+    protected static ?string $pluralModelLabel = 'Tramitadores';
     protected static ?string $navigationGroup = 'Configuración';
     protected static ?int $navigationSort = 2;
 
@@ -264,12 +266,6 @@ class TramitadorResource extends Resource
                 Tables\Columns\TextColumn::make('telefono')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('categorias.nombre')
-                    ->label('Categorías')
-                    ->badge()
-                    ->separator(', ')
-                    ->searchable(),
-
                 Tables\Columns\IconColumn::make('activo')
                     ->boolean()
                     ->sortable(),
@@ -285,12 +281,6 @@ class TramitadorResource extends Resource
                     ->placeholder('Todos')
                     ->trueLabel('Activos')
                     ->falseLabel('Inactivos'),
-
-                Tables\Filters\SelectFilter::make('categorias')
-                    ->relationship('categorias', 'nombre')
-                    ->multiple()
-                    ->searchable()
-                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

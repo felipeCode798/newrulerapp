@@ -53,7 +53,7 @@ class ClienteResource extends Resource
                             ->required()
                             ->maxLength(20),
                     ])
-                    ->columns(2),
+                    ->columns(3),
 
                 Forms\Components\Section::make('Configuración')
                     ->schema([

@@ -35,24 +35,24 @@ class AbogadoResource extends Resource
                             ->maxLength(20)
                             ->unique(ignoreRecord: true),
                         
-                        Forms\Components\Select::make('especialidad')
-                            ->label('Especialidad')
-                            ->options([
-                                'civil' => 'Civil',
-                                'penal' => 'Penal',
-                                'laboral' => 'Laboral',
-                                'transito' => 'Tránsito',
-                                'comercial' => 'Comercial',
-                                'administrativo' => 'Administrativo',
-                                'constitucional' => 'Constitucional',
-                                'otro' => 'Otro',
-                            ])
-                            ->required()
-                            ->default('transito'),
+                        // Forms\Components\Select::make('especialidad')
+                        //     ->label('Especialidad')
+                        //     ->options([
+                        //         'civil' => 'Civil',
+                        //         'penal' => 'Penal',
+                        //         'laboral' => 'Laboral',
+                        //         'transito' => 'Tránsito',
+                        //         'comercial' => 'Comercial',
+                        //         'administrativo' => 'Administrativo',
+                        //         'constitucional' => 'Constitucional',
+                        //         'otro' => 'Otro',
+                        //     ])
+                        //     ->required()
+                        //     ->default('transito'),
                         
-                        Forms\Components\TextInput::make('tarjeta_profesional')
-                            ->label('Tarjeta Profesional')
-                            ->maxLength(50),
+                        // Forms\Components\TextInput::make('tarjeta_profesional')
+                        //     ->label('Tarjeta Profesional')
+                        //     ->maxLength(50),
                         
                         Forms\Components\TextInput::make('telefono')
                             ->label('Teléfono')
@@ -73,43 +73,45 @@ class AbogadoResource extends Resource
                             ->label('Dirección')
                             ->maxLength(255),
                         
-                        Forms\Components\TextInput::make('ciudad')
-                            ->label('Ciudad')
-                            ->maxLength(100),
+                        // Forms\Components\TextInput::make('ciudad')
+                        //     ->label('Ciudad')
+                        //     ->maxLength(100)
+                        //     ->columns(2),
+
                     ])
                     ->columns(2),
                 
-                Forms\Components\Section::make('Información Profesional')
-                    ->schema([
-                        Forms\Components\TextInput::make('honorarios_hora')
-                            ->label('Honorarios por Hora')
-                            ->numeric()
-                            ->prefix('$')
-                            ->default(0),
+                // Forms\Components\Section::make('Información Profesional')
+                //     ->schema([
+                //         Forms\Components\TextInput::make('honorarios_hora')
+                //             ->label('Honorarios por Hora')
+                //             ->numeric()
+                //             ->prefix('$')
+                //             ->default(0),
                         
-                        Forms\Components\TextInput::make('porcentaje_comision')
-                            ->label('Porcentaje de Comisión')
-                            ->numeric()
-                            ->suffix('%')
-                            ->default(0),
+                //         Forms\Components\TextInput::make('porcentaje_comision')
+                //             ->label('Porcentaje de Comisión')
+                //             ->numeric()
+                //             ->suffix('%')
+                //             ->default(0),
                         
-                        Forms\Components\Textarea::make('areas_practica')
-                            ->label('Áreas de Práctica')
-                            ->rows(3),
+                //         Forms\Components\Textarea::make('areas_practica')
+                //             ->label('Áreas de Práctica')
+                //             ->rows(3),
                         
-                        Forms\Components\Textarea::make('formacion_academica')
-                            ->label('Formación Académica')
-                            ->rows(3),
+                //         Forms\Components\Textarea::make('formacion_academica')
+                //             ->label('Formación Académica')
+                //             ->rows(3),
                         
-                        Forms\Components\Textarea::make('experiencia')
-                            ->label('Experiencia')
-                            ->rows(3),
+                //         Forms\Components\Textarea::make('experiencia')
+                //             ->label('Experiencia')
+                //             ->rows(3),
                         
-                        Forms\Components\Toggle::make('disponible')
-                            ->label('Disponible para nuevos casos')
-                            ->default(true),
-                    ])
-                    ->columns(2),
+                //         Forms\Components\Toggle::make('disponible')
+                //             ->label('Disponible para nuevos casos')
+                //             ->default(true),
+                //     ])
+                //     ->columns(2),
                 
                 Forms\Components\Toggle::make('activo')
                     ->label('Activo')
@@ -132,18 +134,18 @@ class AbogadoResource extends Resource
                     ->searchable()
                     ->sortable(),
                 
-                Tables\Columns\TextColumn::make('especialidad')
-                    ->label('Especialidad')
-                    ->searchable()
-                    ->sortable()
-                    ->badge()
-                    ->color(fn ($state) => match($state) {
-                        'transito' => 'info',
-                        'civil' => 'primary',
-                        'penal' => 'danger',
-                        'laboral' => 'warning',
-                        default => 'gray',
-                    }),
+                // Tables\Columns\TextColumn::make('especialidad')
+                //     ->label('Especialidad')
+                //     ->searchable()
+                //     ->sortable()
+                //     ->badge()
+                //     ->color(fn ($state) => match($state) {
+                //         'transito' => 'info',
+                //         'civil' => 'primary',
+                //         'penal' => 'danger',
+                //         'laboral' => 'warning',
+                //         default => 'gray',
+                //     }),
                 
                 Tables\Columns\TextColumn::make('telefono')
                     ->label('Teléfono')
@@ -154,16 +156,16 @@ class AbogadoResource extends Resource
                     ->label('Email')
                     ->searchable(),
                 
-                Tables\Columns\TextColumn::make('honorarios_hora')
-                    ->label('Honorarios/Hora')
-                    ->money('COP')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                // Tables\Columns\TextColumn::make('honorarios_hora')
+                //     ->label('Honorarios/Hora')
+                //     ->money('COP')
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
                 
-                Tables\Columns\IconColumn::make('disponible')
-                    ->label('Disponible')
-                    ->boolean()
-                    ->sortable(),
+                // Tables\Columns\IconColumn::make('disponible')
+                //     ->label('Disponible')
+                //     ->boolean()
+                //     ->sortable(),
                 
                 Tables\Columns\IconColumn::make('activo')
                     ->label('Activo')
@@ -177,22 +179,22 @@ class AbogadoResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('especialidad')
-                    ->label('Especialidad')
-                    ->options([
-                        'civil' => 'Civil',
-                        'penal' => 'Penal',
-                        'laboral' => 'Laboral',
-                        'transito' => 'Tránsito',
-                        'comercial' => 'Comercial',
-                        'administrativo' => 'Administrativo',
-                        'constitucional' => 'Constitucional',
-                        'otro' => 'Otro',
-                    ]),
+                // Tables\Filters\SelectFilter::make('especialidad')
+                //     ->label('Especialidad')
+                //     ->options([
+                //         'civil' => 'Civil',
+                //         'penal' => 'Penal',
+                //         'laboral' => 'Laboral',
+                //         'transito' => 'Tránsito',
+                //         'comercial' => 'Comercial',
+                //         'administrativo' => 'Administrativo',
+                //         'constitucional' => 'Constitucional',
+                //         'otro' => 'Otro',
+                //     ]),
                 
-                Tables\Filters\Filter::make('disponible')
-                    ->label('Solo disponibles')
-                    ->query(fn ($query) => $query->where('disponible', true)),
+                // Tables\Filters\Filter::make('disponible')
+                //     ->label('Solo disponibles')
+                //     ->query(fn ($query) => $query->where('disponible', true)),
                 
                 Tables\Filters\Filter::make('activo')
                     ->label('Solo activos')

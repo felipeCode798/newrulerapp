@@ -17,6 +17,56 @@ class EditTramitador extends EditRecord
         ];
     }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        // Cargar precios de cursos existentes
+        $cursosData = [];
+        foreach ($this->record->cursos as $curso) {
+            $cursosData[] = [
+                'curso_id' => $curso->id,
+                'precio_50_transito' => $curso->pivot->precio_50_transito ?? 0,
+                'precio_50_recibir' => $curso->pivot->precio_50_recibir ?? 0,
+                'precio_20_transito' => $curso->pivot->precio_20_transito ?? 0,
+                'precio_20_recibir' => $curso->pivot->precio_20_recibir ?? 0,
+            ];
+        }
+        $data['cursos'] = $cursosData;
+
+        // Cargar precios de renovaciones existentes
+        $renovacionesData = [];
+        foreach ($this->record->renovaciones as $renovacion) {
+            $renovacionesData[] = [
+                'renovacion_id' => $renovacion->id,
+                'precio_renovacion' => $renovacion->pivot->precio_renovacion ?? 0,
+                'precio_examen' => $renovacion->pivot->precio_examen ?? 0,
+                'precio_lamina' => $renovacion->pivot->precio_lamina ?? 0,
+            ];
+        }
+        $data['renovaciones'] = $renovacionesData;
+
+        // Cargar precios de controversias existentes
+        $controversiasData = [];
+        foreach ($this->record->controversias as $controversia) {
+            $controversiasData[] = [
+                'categoria_controversia_id' => $controversia->id,
+                'precio_tramitador' => $controversia->pivot->precio_tramitador ?? 0,
+            ];
+        }
+        $data['controversias'] = $controversiasData;
+
+        // Cargar precios de categorías existentes
+        $categoriasData = [];
+        foreach ($this->record->categorias as $categoria) {
+            $categoriasData[] = [
+                'categoria_id' => $categoria->id,
+                'precio' => $categoria->pivot->precio ?? 0,
+            ];
+        }
+        $data['categorias'] = $categoriasData;
+
+        return $data;
+    }
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // Actualizar usuario asociado
@@ -25,7 +75,10 @@ class EditTramitador extends EditRecord
             'email' => $data['email'],
         ]);
 
-        // Quitar los datos de relaciones para evitar problemas
+        // Guardar los datos de relaciones en $this->data para usar en afterSave
+        $this->data = $data;
+
+        // Quitar los datos de relaciones para evitar problemas con el modelo principal
         unset($data['cursos']);
         unset($data['renovaciones']);
         unset($data['controversias']);
@@ -40,12 +93,14 @@ class EditTramitador extends EditRecord
         if (isset($this->data['cursos'])) {
             $cursosData = [];
             foreach ($this->data['cursos'] as $cursoData) {
-                $cursosData[$cursoData['curso_id']] = [
-                    'precio_50_transito' => $cursoData['precio_50_transito'] ?? 0,
-                    'precio_50_recibir' => $cursoData['precio_50_recibir'] ?? 0,
-                    'precio_20_transito' => $cursoData['precio_20_transito'] ?? 0,
-                    'precio_20_recibir' => $cursoData['precio_20_recibir'] ?? 0,
-                ];
+                if (isset($cursoData['curso_id'])) {
+                    $cursosData[$cursoData['curso_id']] = [
+                        'precio_50_transito' => $cursoData['precio_50_transito'] ?? 0,
+                        'precio_50_recibir' => $cursoData['precio_50_recibir'] ?? 0,
+                        'precio_20_transito' => $cursoData['precio_20_transito'] ?? 0,
+                        'precio_20_recibir' => $cursoData['precio_20_recibir'] ?? 0,
+                    ];
+                }
             }
             $this->record->cursos()->sync($cursosData);
         } else {
@@ -56,11 +111,13 @@ class EditTramitador extends EditRecord
         if (isset($this->data['renovaciones'])) {
             $renovacionesData = [];
             foreach ($this->data['renovaciones'] as $renovacionData) {
-                $renovacionesData[$renovacionData['renovacion_id']] = [
-                    'precio_renovacion' => $renovacionData['precio_renovacion'] ?? 0,
-                    'precio_examen' => $renovacionData['precio_examen'] ?? 0,
-                    'precio_lamina' => $renovacionData['precio_lamina'] ?? 0,
-                ];
+                if (isset($renovacionData['renovacion_id'])) {
+                    $renovacionesData[$renovacionData['renovacion_id']] = [
+                        'precio_renovacion' => $renovacionData['precio_renovacion'] ?? 0,
+                        'precio_examen' => $renovacionData['precio_examen'] ?? 0,
+                        'precio_lamina' => $renovacionData['precio_lamina'] ?? 0,
+                    ];
+                }
             }
             $this->record->renovaciones()->sync($renovacionesData);
         } else {
@@ -71,9 +128,11 @@ class EditTramitador extends EditRecord
         if (isset($this->data['controversias'])) {
             $controversiasData = [];
             foreach ($this->data['controversias'] as $controversiaData) {
-                $controversiasData[$controversiaData['categoria_controversia_id']] = [
-                    'precio_tramitador' => $controversiaData['precio_tramitador'] ?? 0,
-                ];
+                if (isset($controversiaData['categoria_controversia_id'])) {
+                    $controversiasData[$controversiaData['categoria_controversia_id']] = [
+                        'precio_tramitador' => $controversiaData['precio_tramitador'] ?? 0,
+                    ];
+                }
             }
             $this->record->controversias()->sync($controversiasData);
         } else {
@@ -84,9 +143,11 @@ class EditTramitador extends EditRecord
         if (isset($this->data['categorias'])) {
             $categoriasData = [];
             foreach ($this->data['categorias'] as $categoriaData) {
-                $categoriasData[$categoriaData['categoria_id']] = [
-                    'precio' => $categoriaData['precio'] ?? 0,
-                ];
+                if (isset($categoriaData['categoria_id'])) {
+                    $categoriasData[$categoriaData['categoria_id']] = [
+                        'precio' => $categoriaData['precio'] ?? 0,
+                    ];
+                }
             }
             $this->record->categorias()->sync($categoriasData);
         } else {

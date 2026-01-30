@@ -14,6 +14,20 @@ class ListProcesos extends ListRecords
 {
     protected static string $resource = ProcesoResource::class;
 
+    // Asegúrate de que estos métodos estén presentes
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            ProcesoResource\Widgets\ProcesoStatsOverview::class,
+        ];
+    }
+
+    // CAMBIA ESTE MÉTODO DE protected A public
+    public function getHeaderWidgetsColumns(): int|array
+    {
+        return 4; // 4 widgets por fila
+    }
+
     protected function getHeaderActions(): array
     {
         return [

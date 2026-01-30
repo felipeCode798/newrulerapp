@@ -54,6 +54,8 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->brandName('Sistema Jurídico Tránsito')
+            ->brandLogo(asset('images/Logo_ruler_letters.png'))
+            ->brandLogoHeight('3rem') 
             ->sidebarCollapsibleOnDesktop()
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()

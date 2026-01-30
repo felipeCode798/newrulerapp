@@ -61,6 +61,7 @@ class PagoResource extends Resource
                             ->required()
                             ->default(now())
                             ->native(false)
+                            ->columnSpan(2)
                             ->displayFormat('d/m/Y'),
                         
                         Forms\Components\Textarea::make('observaciones')

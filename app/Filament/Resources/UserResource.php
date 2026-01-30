@@ -62,7 +62,7 @@ class UserResource extends Resource
                             ->revealable()
                             ->dehydrated(false),
                     ])
-                    ->columns(2),
+                    ->columns(3),
     
                 Forms\Components\Section::make('Roles y Permisos')
                     ->schema([

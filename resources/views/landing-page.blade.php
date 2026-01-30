@@ -24,19 +24,22 @@
 
     <style>
         :root {
-            --primary-color: #1e3a8a; /* blue-900 */
-            --secondary-color: #3b82f6; /* blue-600 */
-            --accent-color: #10b981; /* emerald-500 */
+            --primary-color: #dc2626; /* red-600 (antes blue-900) */
+            --secondary-color: #ef4444; /* red-500 (antes blue-600) */
+            --accent-color: #f87171; /* red-400 (antes emerald-500) */
         }
         
         body {
             font-family: 'Open Sans', sans-serif;
             scroll-behavior: smooth;
+            background-color: #000000; /* Fondo negro */
+            color: #ffffff; /* Texto blanco por defecto */
         }
         
         h1, h2, h3, h4, h5, h6 {
             font-family: 'Montserrat', sans-serif;
             font-weight: 700;
+            color: #ffffff; /* Texto blanco para títulos */
         }
         
         .section-header {
@@ -48,7 +51,7 @@
             font-size: 36px;
             font-weight: 700;
             position: relative;
-            color: #1f2937;
+            color: #ffffff; /* Blanco en lugar de gris oscuro */
         }
         
         .section-header h3::after {
@@ -57,7 +60,7 @@
             display: block;
             width: 50px;
             height: 3px;
-            background: var(--secondary-color);
+            background: var(--secondary-color); /* Rojo */
             bottom: -15px;
             left: 50%;
             transform: translateX(-50%);
@@ -65,7 +68,7 @@
         
         .section-header p {
             margin: 20px auto 0 auto;
-            color: #6b7280;
+            color: #d1d5db; /* Gris claro en lugar de gris oscuro */
             max-width: 800px;
         }
         
@@ -85,7 +88,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7); /* Oscurecer más para contraste */
+        }
+
+        .mt-15{
+            margin-top: 20px;
         }
         
         .carousel-content {
@@ -131,22 +138,23 @@
         .service-slide {
             flex: 0 0 calc(33.333% - 20px);
             min-width: 300px;
-            background: white;
+            background: #1f1f1f; /* Fondo gris oscuro para tarjetas */
             padding: 30px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1); /* Sombra roja tenue */
             transition: all 0.3s ease;
+            color: #ffffff; /* Texto blanco */
         }
         
         .service-slide:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 15px 30px rgba(220, 38, 38, 0.2); /* Sombra roja más intensa */
         }
         
         .service-slide i {
             font-size: 40px;
-            color: var(--secondary-color);
+            color: var(--secondary-color); /* Rojo */
             margin-bottom: 20px;
         }
         
@@ -154,7 +162,7 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: var(--secondary-color);
+            background: var(--secondary-color); /* Rojo */
             color: white;
             border: none;
             width: 50px;
@@ -169,7 +177,7 @@
         }
         
         .carousel-btn:hover {
-            background: var(--primary-color);
+            background: var(--primary-color); /* Rojo más oscuro */
             transform: translateY(-50%) scale(1.1);
         }
         
@@ -192,73 +200,93 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background: #d1d5db;
+            background: #4b5563; /* Gris más oscuro */
             cursor: pointer;
             transition: all 0.3s ease;
         }
         
         .carousel-dot.active {
-            background: var(--secondary-color);
+            background: var(--secondary-color); /* Rojo */
             transform: scale(1.2);
         }
         
         .featured-box {
-            background: white;
+            background: #1f1f1f; /* Fondo gris oscuro */
             padding: 40px 30px;
             border-radius: 10px;
             text-align: center;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.1); /* Sombra roja tenue */
             height: 100%;
+            color: #ffffff; /* Texto blanco */
         }
         
         .featured-box:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            box-shadow: 0 20px 40px rgba(220, 38, 38, 0.2); /* Sombra roja más intensa */
         }
         
         .featured-box i {
             font-size: 48px;
-            color: var(--secondary-color);
+            color: var(--secondary-color); /* Rojo */
             margin-bottom: 20px;
         }
         
+        .featured-box p {
+            color: #d1d5db; /* Gris claro para texto secundario */
+        }
+        
         .about-col {
-            background: white;
+            background: #1f1f1f; /* Fondo gris oscuro */
             padding: 30px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1); /* Sombra roja tenue */
             height: 100%;
             transition: all 0.3s ease;
+            color: #ffffff; /* Texto blanco */
         }
         
         .about-col:hover {
             transform: translateY(-5px);
         }
         
+        .about-col p {
+            color: #d1d5db; /* Gris claro para texto secundario */
+        }
+        
         .testimonial-item {
-            background: white;
+            background: #1f1f1f; /* Fondo gris oscuro */
             padding: 30px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1); /* Sombra roja tenue */
             margin: 20px;
+            color: #ffffff; /* Texto blanco */
+        }
+        
+        .testimonial-item p {
+            color: #d1d5db; /* Gris claro para texto secundario */
         }
         
         .contact-info-box {
-            background: white;
+            background: #1f1f1f; /* Fondo gris oscuro */
             padding: 30px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1); /* Sombra roja tenue */
             height: 100%;
+            color: #ffffff; /* Texto blanco */
         }
         
         .contact-info-box i {
             font-size: 40px;
-            color: var(--secondary-color);
+            color: var(--secondary-color); /* Rojo */
             margin-bottom: 20px;
+        }
+        
+        .contact-info-box p {
+            color: #d1d5db; /* Gris claro para texto secundario */
         }
         
         .social-links a {
@@ -268,14 +296,14 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: var(--secondary-color);
+            background: var(--secondary-color); /* Rojo */
             color: white;
             margin: 0 5px;
             transition: all 0.3s ease;
         }
         
         .social-links a:hover {
-            background: var(--primary-color);
+            background: var(--primary-color); /* Rojo más oscuro */
             transform: translateY(-3px);
         }
         
@@ -285,7 +313,7 @@
             bottom: 30px;
             width: 50px;
             height: 50px;
-            background: var(--secondary-color);
+            background: var(--secondary-color); /* Rojo */
             color: white;
             border-radius: 50%;
             display: flex;
@@ -296,7 +324,7 @@
         }
         
         .back-to-top:hover {
-            background: var(--primary-color);
+            background: var(--primary-color); /* Rojo más oscuro */
             transform: translateY(-5px);
         }
         
@@ -305,10 +333,11 @@
             padding: 10px 15px;
             font-weight: 500;
             transition: all 0.3s ease;
+            color: #ffffff; /* Texto blanco para navegación */
         }
         
         .nav-link:hover {
-            color: var(--secondary-color);
+            color: var(--secondary-color); /* Rojo al hacer hover */
         }
         
         .nav-link::after {
@@ -318,7 +347,7 @@
             left: 50%;
             width: 0;
             height: 2px;
-            background: var(--secondary-color);
+            background: var(--secondary-color); /* Rojo */
             transition: all 0.3s ease;
             transform: translateX(-50%);
         }
@@ -328,12 +357,12 @@
         }
         
         .consulta-section {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%); /* Gradiente rojo */
             border-radius: 20px;
             padding: 50px 30px;
             margin: 80px auto;
             max-width: 1200px;
-            box-shadow: 0 20px 40px rgba(30, 58, 138, 0.3);
+            box-shadow: 0 20px 40px rgba(127, 29, 29, 0.4); /* Sombra roja */
             position: relative;
             overflow: hidden;
         }
@@ -380,14 +409,14 @@
     </style>
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-black">
     <!-- Header -->
-    <header class="bg-white shadow-lg fixed w-full z-50">
+    <header class="bg-gray-900 shadow-lg fixed w-full z-50">
         <div class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <img src="http://127.0.0.1:8000/images/Logo_ruler.png" alt="Ruler Soluciones" class="h-16 w-auto">
+                    <img src="http://127.0.0.1:8000/images/Logo_ruler_letters.png" alt="Ruler Soluciones" class="h-16 w-auto">
                 </div>
                 
                 <!-- Navegación -->
@@ -400,7 +429,7 @@
                 </nav>
                 
                 <!-- Botón Panel Admin -->
-                <a href="/admin" class="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-lg font-semibold transition duration-300 shadow-md">
+                <a href="/admin" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition duration-300 shadow-md">
                     <i class="fas fa-sign-in-alt mr-2"></i> Panel Admin
                 </a>
             </div>
@@ -457,66 +486,66 @@
     </section>
 
     <!-- Servicios Destacados -->
-    <section class="py-16 bg-gray-100">
+    <section class="py-16 mt-15 bg-gray-900">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="featured-box animate__animated animate__fadeInUp">
                     <i class="fas fa-bookmark"></i>
                     <h4 class="text-xl font-bold mb-3">Compromiso con el Cumplimiento</h4>
-                    <p class="text-gray-600">Nos comprometemos a garantizar el cumplimiento riguroso de las normativas viales.</p>
+                    <p class="text-gray-300">Nos comprometemos a garantizar el cumplimiento riguroso de las normativas viales.</p>
                 </div>
                 
                 <div class="featured-box animate__animated animate__fadeInUp animate__delay-1s">
                     <i class="fas fa-clock"></i>
                     <h4 class="text-xl font-bold mb-3">Eficiencia en el Tiempo</h4>
-                    <p class="text-gray-600">Puedes confiar en soluciones rápidas y eficientes para tus necesidades de tránsito.</p>
+                    <p class="text-gray-300">Puedes confiar en soluciones rápidas y eficientes para tus necesidades de tránsito.</p>
                 </div>
                 
                 <div class="featured-box animate__animated animate__fadeInUp animate__delay-2s">
                     <i class="fas fa-heart"></i>
                     <h4 class="text-xl font-bold mb-3">Atención Personalizada al Cliente</h4>
-                    <p class="text-gray-600">Nos comprometemos a brindarte una atención personalizada y dedicada en cada paso del camino.</p>
+                    <p class="text-gray-300">Nos comprometemos a brindarte una atención personalizada y dedicada en cada paso del camino.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Sección Nosotros -->
-    <section id="nosotros" class="py-16 bg-white">
+    <section id="nosotros" class="py-16 bg-black">
         <div class="container mx-auto px-4">
             <div class="section-header">
                 <h3>Nosotros</h3>
-                <p>Nuestro enfoque se centra en tres pilares fundamentales: cumplimiento, eficiencia y atención al cliente. Trabajamos incansablemente para garantizar que nuestros clientes cumplan con todas las regulaciones viales de manera precisa y oportuna.</p>
+                <p class="text-gray-300">Nuestro enfoque se centra en tres pilares fundamentales: cumplimiento, eficiencia y atención al cliente. Trabajamos incansablemente para garantizar que nuestros clientes cumplan con todas las regulaciones viales de manera precisa y oportuna.</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="about-col animate__animated animate__fadeInUp">
                     <img src="http://127.0.0.1:8000/images/mision.jpg" alt="Misión" class="w-full h-48 object-cover rounded-t-lg mb-4">
                     <h4 class="text-xl font-bold mb-3">Misión</h4>
-                    <p class="text-gray-600">En Ruler Soluciones de Tránsito, nuestra misión es liderar la transformación del paisaje vial, proporcionando soluciones innovadoras y eficientes que promuevan la seguridad, la movilidad y el cumplimiento de las normativas viales.</p>
+                    <p class="text-gray-300">En Ruler Soluciones de Tránsito, nuestra misión es liderar la transformación del paisaje vial, proporcionando soluciones innovadoras y eficientes que promuevan la seguridad, la movilidad y el cumplimiento de las normativas viales.</p>
                 </div>
                 
                 <div class="about-col animate__animated animate__fadeInUp">
                     <img src="http://127.0.0.1:8000/images/objetivos.jpg" alt="Objetivos" class="w-full h-48 object-cover rounded-t-lg mb-4">
                     <h4 class="text-xl font-bold mb-3">Objetivos</h4>
-                    <p class="text-gray-600">Nuestros objetivos abarcan la excelencia en el servicio al cliente, la continua innovación en soluciones de tránsito, el estricto cumplimiento normativo y el desarrollo del talento de nuestro equipo.</p>
+                    <p class="text-gray-300">Nuestros objetivos abarcan la excelencia en el servicio al cliente, la continua innovación en soluciones de tránsito, el estricto cumplimiento normativo y el desarrollo del talento de nuestro equipo.</p>
                 </div>
                 
                 <div class="about-col animate__animated animate__fadeInUp">
                     <img src="http://127.0.0.1:8000/images/vision.jpeg" alt="Visión" class="w-full h-48 object-cover rounded-t-lg mb-4">
                     <h4 class="text-xl font-bold mb-3">Visión</h4>
-                    <p class="text-gray-600">Nuestra visión es ser reconocidos como líderes en la industria de soluciones de tránsito, tanto a nivel local como internacional.</p>
+                    <p class="text-gray-300">Nuestra visión es ser reconocidos como líderes en la industria de soluciones de tránsito, tanto a nivel local como internacional.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Sección Servicios (Carrusel) -->
-    <section id="servicios" class="py-16 bg-gray-50">
+    <section id="servicios" class="py-16 bg-gray-900">
         <div class="container mx-auto px-4">
             <div class="section-header">
                 <h3>Servicios</h3>
-                <p>En Ruler Soluciones de Tránsito, ofrecemos una amplia gama de servicios diseñados para cubrir todas tus necesidades relacionadas con el tráfico y la movilidad.</p>
+                <p class="text-gray-300">En Ruler Soluciones de Tránsito, ofrecemos una amplia gama de servicios diseñados para cubrir todas tus necesidades relacionadas con el tráfico y la movilidad.</p>
             </div>
             
             <!-- Carrusel de servicios -->
@@ -531,42 +560,42 @@
                         <div class="service-slide">
                             <i class="fas fa-chart-line"></i>
                             <h4 class="text-lg font-bold mb-3">Gestión de Comparendos</h4>
-                            <p class="text-gray-600">Simplificamos el proceso de manejo de comparendos, brindándote asesoramiento experto.</p>
+                            <p class="text-gray-300">Simplificamos el proceso de manejo de comparendos, brindándote asesoramiento experto.</p>
                         </div>
                         
                         <!-- Slide 2 -->
                         <div class="service-slide">
                             <i class="fas fa-id-card"></i>
                             <h4 class="text-lg font-bold mb-3">Renovación de Licencias</h4>
-                            <p class="text-gray-600">Facilitamos el proceso de renovación de licencias y documentos vehiculares.</p>
+                            <p class="text-gray-300">Facilitamos el proceso de renovación de licencias y documentos vehiculares.</p>
                         </div>
                         
                         <!-- Slide 3 -->
                         <div class="service-slide">
                             <i class="fas fa-graduation-cap"></i>
                             <h4 class="text-lg font-bold mb-3">Curso de Conductores</h4>
-                            <p class="text-gray-600">Mejora tus habilidades en la carretera con nuestro curso diseñado para todos los niveles.</p>
+                            <p class="text-gray-300">Mejora tus habilidades en la carretera con nuestro curso diseñado para todos los niveles.</p>
                         </div>
                         
                         <!-- Slide 4 -->
                         <div class="service-slide">
                             <i class="fas fa-balance-scale"></i>
                             <h4 class="text-lg font-bold mb-3">Resolución de Controversias</h4>
-                            <p class="text-gray-600">Nuestro equipo experto te respalda en la resolución de controversias viales.</p>
+                            <p class="text-gray-300">Nuestro equipo experto te respalda en la resolución de controversias viales.</p>
                         </div>
                         
                         <!-- Slide 5 -->
                         <div class="service-slide">
                             <i class="fas fa-handshake"></i>
                             <h4 class="text-lg font-bold mb-3">Acuerdos de Pago</h4>
-                            <p class="text-gray-600">Te ofrecemos asesoramiento personalizado y opciones de pago flexibles.</p>
+                            <p class="text-gray-300">Te ofrecemos asesoramiento personalizado y opciones de pago flexibles.</p>
                         </div>
                         
                         <!-- Slide 6 -->
                         <div class="service-slide">
                             <i class="fas fa-file-contract"></i>
                             <h4 class="text-lg font-bold mb-3">Revocatorias y Prescripciones</h4>
-                            <p class="text-gray-600">Manejamos procesos de revocatorias y prescripciones de licencias.</p>
+                            <p class="text-gray-300">Manejamos procesos de revocatorias y prescripciones de licencias.</p>
                         </div>
                     </div>
                 </div>
@@ -590,52 +619,52 @@
         <div class="container mx-auto px-4">
             <div class="text-center mb-10">
                 <h2 class="text-4xl font-bold text-white mb-4">Consulta el Estado de tus Trámites</h2>
-                <p class="text-xl text-blue-100">Ingresa tu cédula para verificar el progreso de tus cursos, licencias y renovaciones</p>
+                <p class="text-xl text-red-100">Ingresa tu cédula para verificar el progreso de tus cursos, licencias y renovaciones</p>
             </div>
             
-            <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
+            <div class="max-w-2xl mx-auto bg-gray-900 rounded-xl shadow-lg p-8">
                 <form action="{{ route('buscar.procesos') }}" method="GET" class="space-y-6">
                     <div>
-                        <label class="block text-gray-700 text-left mb-2 font-semibold">
-                            <i class="fas fa-id-card text-blue-600 mr-2"></i> Número de Cédula
+                        <label class="block text-gray-300 text-left mb-2 font-semibold">
+                            <i class="fas fa-id-card text-red-500 mr-2"></i> Número de Cédula
                         </label>
                         <input type="text" name="cedula" 
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-white"
                                placeholder="Ej: 1234567890" required>
                     </div>
                     
                     <div>
-                        <label class="block text-gray-700 text-left mb-2 font-semibold">
-                            <i class="fas fa-user-tie text-blue-600 mr-2"></i> Tipo de Usuario
+                        <label class="block text-gray-300 text-left mb-2 font-semibold">
+                            <i class="fas fa-user-tie text-red-500 mr-2"></i> Tipo de Usuario
                         </label>
                         <div class="grid grid-cols-2 gap-4">
-                            <label class="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-300">
+                            <label class="flex items-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer hover:bg-red-900/30 transition duration-300">
                                 <input type="radio" name="tipo" value="cliente" class="mr-3" checked>
                                 <div>
-                                    <i class="fas fa-user text-blue-600 text-xl mb-1"></i>
-                                    <p class="font-semibold">Cliente</p>
-                                    <p class="text-sm text-gray-600">Consultar mis trámites</p>
+                                    <i class="fas fa-user text-red-500 text-xl mb-1"></i>
+                                    <p class="font-semibold text-white">Cliente</p>
+                                    <p class="text-sm text-gray-400">Consultar mis trámites</p>
                                 </div>
                             </label>
-                            <label class="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition duration-300">
+                            <label class="flex items-center p-4 bg-gray-800 border border-gray-700 rounded-lg cursor-pointer hover:bg-red-900/30 transition duration-300">
                                 <input type="radio" name="tipo" value="tramitador" class="mr-3">
                                 <div>
-                                    <i class="fas fa-user-tie text-green-600 text-xl mb-1"></i>
-                                    <p class="font-semibold">Tramitador</p>
-                                    <p class="text-sm text-gray-600">Consultar trámites gestionados</p>
+                                    <i class="fas fa-user-tie text-red-500 text-xl mb-1"></i>
+                                    <p class="font-semibold text-white">Tramitador</p>
+                                    <p class="text-sm text-gray-400">Consultar trámites gestionados</p>
                                 </div>
                             </label>
                         </div>
                     </div>
                     
                     <button type="submit" 
-                            class="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            class="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                         <i class="fas fa-search mr-2"></i> Consultar Estado de Trámites
                     </button>
                 </form>
                 
                 @if(session('error'))
-                    <div class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg animate__animated animate__shakeX">
+                    <div class="mt-4 p-4 bg-red-900/30 border border-red-700 text-red-300 rounded-lg animate__animated animate__shakeX">
                         <i class="fas fa-exclamation-triangle mr-2"></i> {{ session('error') }}
                     </div>
                 @endif
@@ -644,13 +673,13 @@
     </section>
 
     <!-- Call to Action -->
-    <section class="py-16 bg-gradient-to-r from-blue-900 to-blue-700 text-white">
+    <section class="py-16 bg-gradient-to-r from-gray-900 to-black text-white">
         <div class="container mx-auto px-4 text-center">
             <h3 class="text-3xl font-bold mb-6">¡Contáctanos hoy mismo y simplifica tus trámites de tránsito!</h3>
-            <p class="text-xl mb-8 max-w-3xl mx-auto">¿Necesitas ayuda con la gestión de comparendos, la renovación de licencias o la resolución de controversias viales? ¡No esperes más!</p>
+            <p class="text-xl mb-8 max-w-3xl mx-auto text-gray-300">¿Necesitas ayuda con la gestión de comparendos, la renovación de licencias o la resolución de controversias viales? ¡No esperes más!</p>
             <a href="https://api.whatsapp.com/send?phone=573104736884&text=Hola%F0%9F%91%8B%2C%20Quiero%20mas%20informacion%20para%20realizar%20un%20tramite%F0%9F%91%AE%E2%80%8D%E2%99%82%EF%B8%8F" 
                target="_blank" 
-               class="inline-flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+               class="inline-flex items-center bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                 <i class="fab fa-whatsapp text-2xl mr-3"></i>
                 <span class="text-lg">Contactar por WhatsApp</span>
             </a>
@@ -658,63 +687,63 @@
     </section>
 
     <!-- Testimonios -->
-    <section class="py-16 bg-white">
+    <section class="py-16 bg-black">
         <div class="container mx-auto px-4">
             <div class="section-header">
                 <h3>Testimonios</h3>
-                <p>Lo que dicen nuestros clientes satisfechos</p>
+                <p class="text-gray-300">Lo que dicen nuestros clientes satisfechos</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="testimonial-item">
                     <img src="http://127.0.0.1:8000/images/testimonial-1.jpg" alt="Testimonio 1" class="w-20 h-20 rounded-full mx-auto mb-4">
                     <h4 class="font-bold text-lg mb-2">Saul Goodman</h4>
-                    <p class="text-gray-600 italic">"¡Increíble servicio! Gracias a Ruler Soluciones de Tránsito, pude resolver un problema de comparendos que me tenía preocupado durante meses."</p>
+                    <p class="text-gray-300 italic">"¡Increíble servicio! Gracias a Ruler Soluciones de Tránsito, pude resolver un problema de comparendos que me tenía preocupado durante meses."</p>
                 </div>
                 
                 <div class="testimonial-item">
                     <img src="http://127.0.0.1:8000/images/testimonial-2.jpg" alt="Testimonio 2" class="w-20 h-20 rounded-full mx-auto mb-4">
                     <h4 class="font-bold text-lg mb-2">Sara Wilsson</h4>
-                    <p class="text-gray-600 italic">"He estado renovando mi licencia de conducir con Ruler durante años, ¡y nunca me han decepcionado! Su proceso es rápido, fácil y sin complicaciones."</p>
+                    <p class="text-gray-300 italic">"He estado renovando mi licencia de conducir con Ruler durante años, ¡y nunca me han decepcionado! Su proceso es rápido, fácil y sin complicaciones."</p>
                 </div>
                 
                 <div class="testimonial-item">
                     <img src="http://127.0.0.1:8000/images/testimonial-3.jpg" alt="Testimonio 3" class="w-20 h-20 rounded-full mx-auto mb-4">
                     <h4 class="font-bold text-lg mb-2">Jena Karlis</h4>
-                    <p class="text-gray-600 italic">"Tuve un problema legal complicado relacionado con un accidente de tráfico, y Ruler Soluciones de Tránsito estuvo a mi lado en cada paso del camino."</p>
+                    <p class="text-gray-300 italic">"Tuve un problema legal complicado relacionado con un accidente de tráfico, y Ruler Soluciones de Tránsito estuvo a mi lado en cada paso del camino."</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Contacto -->
-    <section id="contacto" class="py-16 bg-gray-100">
+    <section id="contacto" class="py-16 bg-gray-900">
         <div class="container mx-auto px-4">
             <div class="section-header">
                 <h3>Contacto</h3>
-                <p>¿Necesitas ayuda con tus trámites de tránsito? ¿Tienes alguna pregunta sobre nuestros servicios? ¡Estamos aquí para ayudarte!</p>
+                <p class="text-gray-300">¿Necesitas ayuda con tus trámites de tránsito? ¿Tienes alguna pregunta sobre nuestros servicios? ¡Estamos aquí para ayudarte!</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="contact-info-box">
                     <i class="fas fa-map-marker-alt"></i>
                     <h4 class="text-lg font-bold mb-3">Dirección</h4>
-                    <p class="text-gray-600">Calle 56 # 3 - 26, Cali Valle del Cauca</p>
+                    <p class="text-gray-300">Calle 56 # 3 - 26, Cali Valle del Cauca</p>
                 </div>
                 
                 <div class="contact-info-box">
                     <i class="fas fa-phone"></i>
                     <h4 class="text-lg font-bold mb-3">Teléfono</h4>
-                    <p class="text-gray-600">
-                        <a href="tel:+573104736884" class="text-blue-600 hover:text-blue-800">+57 310 473 68 84</a>
+                    <p class="text-gray-300">
+                        <a href="tel:+573104736884" class="text-red-400 hover:text-red-300">+57 310 473 68 84</a>
                     </p>
                 </div>
                 
                 <div class="contact-info-box">
                     <i class="fas fa-envelope"></i>
                     <h4 class="text-lg font-bold mb-3">Email</h4>
-                    <p class="text-gray-600">
-                        <a href="mailto:infosoluciones@rulersas.com" class="text-blue-600 hover:text-blue-800">infosoluciones@rulersas.com</a>
+                    <p class="text-gray-300">
+                        <a href="mailto:infosoluciones@rulersas.com" class="text-red-400 hover:text-red-300">infosoluciones@rulersas.com</a>
                     </p>
                 </div>
             </div>
@@ -722,7 +751,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white pt-12 pb-6">
+    <footer class="bg-black text-white pt-12 pb-6">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 <!-- Logo e info -->
@@ -735,10 +764,10 @@
                 <div>
                     <h4 class="text-xl font-bold mb-4">Enlaces Rápidos</h4>
                     <ul class="space-y-2">
-                        <li><a href="#inicio" class="text-gray-400 hover:text-white transition duration-300"><i class="fas fa-chevron-right mr-2 text-blue-500"></i> Inicio</a></li>
-                        <li><a href="#nosotros" class="text-gray-400 hover:text-white transition duration-300"><i class="fas fa-chevron-right mr-2 text-blue-500"></i> Nosotros</a></li>
-                        <li><a href="#servicios" class="text-gray-400 hover:text-white transition duration-300"><i class="fas fa-chevron-right mr-2 text-blue-500"></i> Servicios</a></li>
-                        <li><a href="#consulta" class="text-gray-400 hover:text-white transition duration-300"><i class="fas fa-chevron-right mr-2 text-blue-500"></i> Consulta Trámites</a></li>
+                        <li><a href="#inicio" class="text-gray-400 hover:text-white transition duration-300"><i class="fas fa-chevron-right mr-2 text-red-500"></i> Inicio</a></li>
+                        <li><a href="#nosotros" class="text-gray-400 hover:text-white transition duration-300"><i class="fas fa-chevron-right mr-2 text-red-500"></i> Nosotros</a></li>
+                        <li><a href="#servicios" class="text-gray-400 hover:text-white transition duration-300"><i class="fas fa-chevron-right mr-2 text-red-500"></i> Servicios</a></li>
+                        <li><a href="#consulta" class="text-gray-400 hover:text-white transition duration-300"><i class="fas fa-chevron-right mr-2 text-red-500"></i> Consulta Trámites</a></li>
                     </ul>
                 </div>
                 
@@ -764,7 +793,7 @@
                 </div>
             </div>
             
-            <div class="border-t border-gray-700 pt-6 text-center">
+            <div class="border-t border-gray-800 pt-6 text-center">
                 <p class="text-gray-400">&copy; {{ date('Y') }} Ruler Soluciones De Tránsito. Todos los derechos reservados.</p>
                 <p class="text-gray-500 text-sm mt-2">Diseñado por Juan Felipe Gonzalez</p>
             </div>

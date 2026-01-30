@@ -67,6 +67,7 @@ class GastoResource extends Resource
                             ->relationship('proceso', 'descripcion_servicio')
                             ->searchable()
                             ->preload()
+                            ->columnSpan(2)
                             ->nullable(),
                         
                         Forms\Components\DatePicker::make('fecha_gasto')
@@ -74,6 +75,7 @@ class GastoResource extends Resource
                             ->required()
                             ->default(now())
                             ->native(false)
+                            ->columnSpan(2)
                             ->displayFormat('d/m/Y'),
                         
                         Forms\Components\Select::make('estado')
@@ -89,12 +91,13 @@ class GastoResource extends Resource
                             ->label('Comprobante')
                             ->directory('gastos/comprobantes')
                             ->acceptedFileTypes(['image/*', 'application/pdf'])
+                            ->columnSpan(3)
                             ->maxSize(5120),
                         
                         Forms\Components\Textarea::make('observaciones')
                             ->label('Observaciones')
                             ->rows(3)
-                            ->columnSpanFull(),
+                            ->columnSpan(3),
                     ])
                     ->columns(2),
             ]);

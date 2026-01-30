@@ -63,7 +63,7 @@ class CursoResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Precios para Clientes - 20%')
+                Forms\Components\Section::make('Precios para Clientes - 25%')
                     ->schema([
                         Forms\Components\TextInput::make('precio_cliente_20_transito')
                             ->label('Valor Tránsito')
