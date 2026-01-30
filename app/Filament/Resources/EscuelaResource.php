@@ -22,7 +22,7 @@ class EscuelaResource extends Resource
 
     protected static ?string $navigationGroup = 'Configuración';
 
-    protected static ?int $navigationSort = 5;
+    //protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {

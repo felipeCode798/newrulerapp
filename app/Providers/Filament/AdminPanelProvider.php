@@ -53,6 +53,13 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+            ->navigationGroups([
+                'Gestión',
+                'Finanzas',
+                'Administración',
+                'Configuración',
+                'Filament Shield',
+            ])
             ->brandName('Sistema Jurídico Tránsito')
             ->brandLogo(asset('images/Logo_ruler_letters.png'))
             ->brandLogoHeight('3rem') 

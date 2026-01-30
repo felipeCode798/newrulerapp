@@ -19,7 +19,7 @@ class RenovacionResource extends Resource
     protected static ?string $modelLabel = 'Renovacion';
     protected static ?string $pluralModelLabel = 'Renovaciones';
     protected static ?string $navigationGroup = 'Configuración';
-    protected static ?int $navigationSort = 4;
+    //protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
