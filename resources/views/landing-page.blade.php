@@ -8,7 +8,7 @@
     <meta content="" name="description">
 
     <!-- Favicons -->
-    <link href="http://127.0.0.1:8000/images/favicon_black.png" rel="icon">
+    <link href="{{ asset('images/favicon_black.png') }}" rel="icon">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,22 +24,22 @@
 
     <style>
         :root {
-            --primary-color: #dc2626; /* red-600 (antes blue-900) */
-            --secondary-color: #ef4444; /* red-500 (antes blue-600) */
-            --accent-color: #f87171; /* red-400 (antes emerald-500) */
+            --primary-color: #dc2626;
+            --secondary-color: #ef4444;
+            --accent-color: #f87171;
         }
         
         body {
             font-family: 'Open Sans', sans-serif;
             scroll-behavior: smooth;
-            background-color: #000000; /* Fondo negro */
-            color: #ffffff; /* Texto blanco por defecto */
+            background-color: #000000;
+            color: #ffffff;
         }
         
         h1, h2, h3, h4, h5, h6 {
             font-family: 'Montserrat', sans-serif;
             font-weight: 700;
-            color: #ffffff; /* Texto blanco para títulos */
+            color: #ffffff;
         }
         
         .section-header {
@@ -51,7 +51,7 @@
             font-size: 36px;
             font-weight: 700;
             position: relative;
-            color: #ffffff; /* Blanco en lugar de gris oscuro */
+            color: #ffffff;
         }
         
         .section-header h3::after {
@@ -60,7 +60,7 @@
             display: block;
             width: 50px;
             height: 3px;
-            background: var(--secondary-color); /* Rojo */
+            background: var(--secondary-color);
             bottom: -15px;
             left: 50%;
             transform: translateX(-50%);
@@ -68,11 +68,10 @@
         
         .section-header p {
             margin: 20px auto 0 auto;
-            color: #d1d5db; /* Gris claro en lugar de gris oscuro */
+            color: #d1d5db;
             max-width: 800px;
         }
         
-        /* Estilos para el carrusel principal */
         .main-carousel-item {
             height: 80vh;
             min-height: 400px;
@@ -88,7 +87,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7); /* Oscurecer más para contraste */
+            background: rgba(0, 0, 0, 0.7);
         }
 
         .mt-15{
@@ -118,7 +117,6 @@
             margin-bottom: 30px;
         }
         
-        /* Carrusel de servicios */
         .services-carousel-container {
             position: relative;
             padding: 0 50px;
@@ -138,23 +136,23 @@
         .service-slide {
             flex: 0 0 calc(33.333% - 20px);
             min-width: 300px;
-            background: #1f1f1f; /* Fondo gris oscuro para tarjetas */
+            background: #1f1f1f;
             padding: 30px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1); /* Sombra roja tenue */
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1);
             transition: all 0.3s ease;
-            color: #ffffff; /* Texto blanco */
+            color: #ffffff;
         }
         
         .service-slide:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(220, 38, 38, 0.2); /* Sombra roja más intensa */
+            box-shadow: 0 15px 30px rgba(220, 38, 38, 0.2);
         }
         
         .service-slide i {
             font-size: 40px;
-            color: var(--secondary-color); /* Rojo */
+            color: var(--secondary-color);
             margin-bottom: 20px;
         }
         
@@ -162,7 +160,7 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: var(--secondary-color); /* Rojo */
+            background: var(--secondary-color);
             color: white;
             border: none;
             width: 50px;
@@ -177,7 +175,7 @@
         }
         
         .carousel-btn:hover {
-            background: var(--primary-color); /* Rojo más oscuro */
+            background: var(--primary-color);
             transform: translateY(-50%) scale(1.1);
         }
         
@@ -200,51 +198,51 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background: #4b5563; /* Gris más oscuro */
+            background: #4b5563;
             cursor: pointer;
             transition: all 0.3s ease;
         }
         
         .carousel-dot.active {
-            background: var(--secondary-color); /* Rojo */
+            background: var(--secondary-color);
             transform: scale(1.2);
         }
         
         .featured-box {
-            background: #1f1f1f; /* Fondo gris oscuro */
+            background: #1f1f1f;
             padding: 40px 30px;
             border-radius: 10px;
             text-align: center;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.1); /* Sombra roja tenue */
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.1);
             height: 100%;
-            color: #ffffff; /* Texto blanco */
+            color: #ffffff;
         }
         
         .featured-box:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(220, 38, 38, 0.2); /* Sombra roja más intensa */
+            box-shadow: 0 20px 40px rgba(220, 38, 38, 0.2);
         }
         
         .featured-box i {
             font-size: 48px;
-            color: var(--secondary-color); /* Rojo */
+            color: var(--secondary-color);
             margin-bottom: 20px;
         }
         
         .featured-box p {
-            color: #d1d5db; /* Gris claro para texto secundario */
+            color: #d1d5db;
         }
         
         .about-col {
-            background: #1f1f1f; /* Fondo gris oscuro */
+            background: #1f1f1f;
             padding: 30px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1); /* Sombra roja tenue */
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1);
             height: 100%;
             transition: all 0.3s ease;
-            color: #ffffff; /* Texto blanco */
+            color: #ffffff;
         }
         
         .about-col:hover {
@@ -252,41 +250,41 @@
         }
         
         .about-col p {
-            color: #d1d5db; /* Gris claro para texto secundario */
+            color: #d1d5db;
         }
         
         .testimonial-item {
-            background: #1f1f1f; /* Fondo gris oscuro */
+            background: #1f1f1f;
             padding: 30px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1); /* Sombra roja tenue */
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1);
             margin: 20px;
-            color: #ffffff; /* Texto blanco */
+            color: #ffffff;
         }
         
         .testimonial-item p {
-            color: #d1d5db; /* Gris claro para texto secundario */
+            color: #d1d5db;
         }
         
         .contact-info-box {
-            background: #1f1f1f; /* Fondo gris oscuro */
+            background: #1f1f1f;
             padding: 30px;
             border-radius: 10px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1); /* Sombra roja tenue */
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1);
             height: 100%;
-            color: #ffffff; /* Texto blanco */
+            color: #ffffff;
         }
         
         .contact-info-box i {
             font-size: 40px;
-            color: var(--secondary-color); /* Rojo */
+            color: var(--secondary-color);
             margin-bottom: 20px;
         }
         
         .contact-info-box p {
-            color: #d1d5db; /* Gris claro para texto secundario */
+            color: #d1d5db;
         }
         
         .social-links a {
@@ -296,14 +294,14 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: var(--secondary-color); /* Rojo */
+            background: var(--secondary-color);
             color: white;
             margin: 0 5px;
             transition: all 0.3s ease;
         }
         
         .social-links a:hover {
-            background: var(--primary-color); /* Rojo más oscuro */
+            background: var(--primary-color);
             transform: translateY(-3px);
         }
         
@@ -313,7 +311,7 @@
             bottom: 30px;
             width: 50px;
             height: 50px;
-            background: var(--secondary-color); /* Rojo */
+            background: var(--secondary-color);
             color: white;
             border-radius: 50%;
             display: flex;
@@ -324,7 +322,7 @@
         }
         
         .back-to-top:hover {
-            background: var(--primary-color); /* Rojo más oscuro */
+            background: var(--primary-color);
             transform: translateY(-5px);
         }
         
@@ -333,11 +331,11 @@
             padding: 10px 15px;
             font-weight: 500;
             transition: all 0.3s ease;
-            color: #ffffff; /* Texto blanco para navegación */
+            color: #ffffff;
         }
         
         .nav-link:hover {
-            color: var(--secondary-color); /* Rojo al hacer hover */
+            color: var(--secondary-color);
         }
         
         .nav-link::after {
@@ -347,7 +345,7 @@
             left: 50%;
             width: 0;
             height: 2px;
-            background: var(--secondary-color); /* Rojo */
+            background: var(--secondary-color);
             transition: all 0.3s ease;
             transform: translateX(-50%);
         }
@@ -357,12 +355,12 @@
         }
         
         .consulta-section {
-            background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%); /* Gradiente rojo */
+            background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%);
             border-radius: 20px;
             padding: 50px 30px;
             margin: 80px auto;
             max-width: 1200px;
-            box-shadow: 0 20px 40px rgba(127, 29, 29, 0.4); /* Sombra roja */
+            box-shadow: 0 20px 40px rgba(127, 29, 29, 0.4);
             position: relative;
             overflow: hidden;
         }
@@ -374,7 +372,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('http://127.0.0.1:8000/images/intro-carousel/aerial-views-with-cars-streets.png');
+            background: url('{{ asset('images/intro-carousel/aerial-views-with-cars-streets.png') }}');
             background-size: cover;
             background-position: center;
             opacity: 0.1;
@@ -386,7 +384,6 @@
             z-index: 2;
         }
         
-        /* Responsive para móviles */
         @media (max-width: 768px) {
             .service-slide {
                 flex: 0 0 calc(100% - 20px);
@@ -416,7 +413,7 @@
             <div class="flex justify-between items-center">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <img src="http://127.0.0.1:8000/images/Logo_ruler_letters.png" alt="Ruler Soluciones" class="h-16 w-auto">
+                    <img src="{{ asset('images/Logo_ruler_letters.png') }}" alt="Ruler Soluciones" class="h-16 w-auto">
                 </div>
                 
                 <!-- Navegación -->
@@ -443,7 +440,7 @@
             <div id="mainCarousel" class="relative overflow-hidden">
                 <div class="main-carousel-track flex transition-transform duration-500 ease-in-out">
                     <!-- Slide 1 -->
-                    <div class="main-carousel-item flex-shrink-0 w-full" style="background-image: url('http://127.0.0.1:8000/images/intro-carousel/aerial-views-with-cars-streets.png');">
+                    <div class="main-carousel-item flex-shrink-0 w-full" style="background-image: url('{{ asset('images/intro-carousel/aerial-views-with-cars-streets.png') }}');">
                         <div class="carousel-content">
                             <h2 class="animate__animated animate__fadeInDown">Curso de Conductores</h2>
                             <p class="animate__animated animate__fadeInUp">Explora nuestro curso de conductores diseñado para mejorar tus habilidades en la carretera y promover prácticas seguras.</p>
@@ -451,7 +448,7 @@
                     </div>
                     
                     <!-- Slide 2 -->
-                    <div class="main-carousel-item flex-shrink-0 w-full" style="background-image: url('http://127.0.0.1:8000/images/intro-carousel/brunette-businesswoman-inside-car.png');">
+                    <div class="main-carousel-item flex-shrink-0 w-full" style="background-image: url('{{ asset('images/intro-carousel/brunette-businesswoman-inside-car.png') }}');">
                         <div class="carousel-content">
                             <h2>Soluciones Eficientes para tus Infracciones</h2>
                             <p>Con nuestras soluciones personalizadas, transformamos el manejo de comparendos en un proceso rápido y sin complicaciones.</p>
@@ -459,7 +456,7 @@
                     </div>
                     
                     <!-- Slide 3 -->
-                    <div class="main-carousel-item flex-shrink-0 w-full" style="background-image: url('http://127.0.0.1:8000/images/intro-carousel/person-taking-driver-s-license-exam.png');">
+                    <div class="main-carousel-item flex-shrink-0 w-full" style="background-image: url('{{ asset('images/intro-carousel/person-taking-driver-s-license-exam.png') }}');">
                         <div class="carousel-content">
                             <h2>Actualiza Tu Documentación con Facilidad</h2>
                             <p>Simplificamos el proceso de renovación de licencias y documentos vehiculares para que puedas estar siempre al día.</p>
@@ -520,19 +517,19 @@
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="about-col animate__animated animate__fadeInUp">
-                    <img src="http://127.0.0.1:8000/images/mision.jpg" alt="Misión" class="w-full h-48 object-cover rounded-t-lg mb-4">
+                    <img src="{{ asset('images/mision.jpg') }}" alt="Misión" class="w-full h-48 object-cover rounded-t-lg mb-4">
                     <h4 class="text-xl font-bold mb-3">Misión</h4>
                     <p class="text-gray-300">En Ruler Soluciones de Tránsito, nuestra misión es liderar la transformación del paisaje vial, proporcionando soluciones innovadoras y eficientes que promuevan la seguridad, la movilidad y el cumplimiento de las normativas viales.</p>
                 </div>
                 
                 <div class="about-col animate__animated animate__fadeInUp">
-                    <img src="http://127.0.0.1:8000/images/objetivos.jpg" alt="Objetivos" class="w-full h-48 object-cover rounded-t-lg mb-4">
+                    <img src="{{ asset('images/objetivos.jpg') }}" alt="Objetivos" class="w-full h-48 object-cover rounded-t-lg mb-4">
                     <h4 class="text-xl font-bold mb-3">Objetivos</h4>
                     <p class="text-gray-300">Nuestros objetivos abarcan la excelencia en el servicio al cliente, la continua innovación en soluciones de tránsito, el estricto cumplimiento normativo y el desarrollo del talento de nuestro equipo.</p>
                 </div>
                 
                 <div class="about-col animate__animated animate__fadeInUp">
-                    <img src="http://127.0.0.1:8000/images/vision.jpeg" alt="Visión" class="w-full h-48 object-cover rounded-t-lg mb-4">
+                    <img src="{{ asset('images/vision.jpeg') }}" alt="Visión" class="w-full h-48 object-cover rounded-t-lg mb-4">
                     <h4 class="text-xl font-bold mb-3">Visión</h4>
                     <p class="text-gray-300">Nuestra visión es ser reconocidos como líderes en la industria de soluciones de tránsito, tanto a nivel local como internacional.</p>
                 </div>
@@ -696,19 +693,19 @@
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="testimonial-item">
-                    <img src="http://127.0.0.1:8000/images/testimonial-1.jpg" alt="Testimonio 1" class="w-20 h-20 rounded-full mx-auto mb-4">
+                    <img src="{{ asset('images/testimonial-1.jpg') }}" alt="Testimonio 1" class="w-20 h-20 rounded-full mx-auto mb-4">
                     <h4 class="font-bold text-lg mb-2">Saul Goodman</h4>
                     <p class="text-gray-300 italic">"¡Increíble servicio! Gracias a Ruler Soluciones de Tránsito, pude resolver un problema de comparendos que me tenía preocupado durante meses."</p>
                 </div>
                 
                 <div class="testimonial-item">
-                    <img src="http://127.0.0.1:8000/images/testimonial-2.jpg" alt="Testimonio 2" class="w-20 h-20 rounded-full mx-auto mb-4">
+                    <img src="{{ asset('images/testimonial-2.jpg') }}" alt="Testimonio 2" class="w-20 h-20 rounded-full mx-auto mb-4">
                     <h4 class="font-bold text-lg mb-2">Sara Wilsson</h4>
                     <p class="text-gray-300 italic">"He estado renovando mi licencia de conducir con Ruler durante años, ¡y nunca me han decepcionado! Su proceso es rápido, fácil y sin complicaciones."</p>
                 </div>
                 
                 <div class="testimonial-item">
-                    <img src="http://127.0.0.1:8000/images/testimonial-3.jpg" alt="Testimonio 3" class="w-20 h-20 rounded-full mx-auto mb-4">
+                    <img src="{{ asset('images/testimonial-3.jpg') }}" alt="Testimonio 3" class="w-20 h-20 rounded-full mx-auto mb-4">
                     <h4 class="font-bold text-lg mb-2">Jena Karlis</h4>
                     <p class="text-gray-300 italic">"Tuve un problema legal complicado relacionado con un accidente de tráfico, y Ruler Soluciones de Tránsito estuvo a mi lado en cada paso del camino."</p>
                 </div>
@@ -756,7 +753,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 <!-- Logo e info -->
                 <div>
-                    <img src="http://127.0.0.1:8000/images/Logo_ruler.png" alt="Ruler Soluciones" class="h-32 w-auto mb-4">
+                    <img src="{{ asset('images/Logo_ruler.png') }}" alt="Ruler Soluciones" class="h-32 w-auto mb-4">
                     <p class="text-gray-400">Gestión profesional de trámites de tránsito</p>
                 </div>
                 

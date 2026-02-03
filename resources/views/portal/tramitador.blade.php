@@ -131,7 +131,7 @@
         <div class="container mx-auto px-4 py-4">
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-4">
-                    <img src="http://127.0.0.1:8000/images/Logo_ruler.png" alt="Ruler Soluciones" class="h-16 w-auto">
+                    <img src="{{ asset('images/Logo_ruler.png') }}" alt="Ruler Soluciones" class="h-16 w-auto">
                     <div class="border-l border-gray-700 pl-4">
                         <h1 class="text-2xl font-bold">Portal del Tramitador</h1>
                         <p class="text-sm text-gray-400">Gestión de procesos asignados</p>
